@@ -1,20 +1,96 @@
-from urllib.parse import urlparse
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>楽天URLチェッカー</title>
 
-def check_rakuten_url(url):
-    """楽天市場の商品URLか簡単にチェックする"""
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 30px 20px;
+    }
 
-    parsed = urlparse(url)
+    .box {
+      max-width: 500px;
+      margin: 50px auto;
+      background: white;
+      padding: 30px 20px;
+      border-radius: 20px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      text-align: center;
+    }
 
-    if "rakuten.co.jp" in parsed.netloc:
-        return "✅ 楽天市場のURLです！"
-    else:
-        return "❌ 楽天市場のURLではありません。"
+    h1 {
+      font-size: 26px;
+    }
 
+    input {
+      width: 90%;
+      padding: 15px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
 
-print("=== 楽天URLチェッカー ===")
+    button {
+      margin-top: 15px;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 10px;
+      background: #bf0000;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+    }
 
-url = input("URLを入力してください：")
+    #result {
+      margin-top: 25px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
 
-result = check_rakuten_url(url)
+<body>
 
-print(result)
+<div class="box">
+  <h1>🛒 楽天URLチェッカー</h1>
+
+  <p>楽天市場の商品URLを入力してください</p>
+
+  <input
+    id="url"
+    type="text"
+    placeholder="https://item.rakuten.co.jp/..."
+  >
+
+  <br>
+
+  <button onclick="checkURL()">
+    URLをチェック
+  </button>
+
+  <div id="result"></div>
+</div>
+
+<script>
+function checkURL() {
+
+  const url = document.getElementById("url").value;
+  const result = document.getElementById("result");
+
+  if (url.includes("rakuten.co.jp")) {
+    result.innerHTML = "✅ 楽天市場のURLです！";
+  } else {
+    result.innerHTML = "❌ 楽天市場のURLではありません";
+  }
+
+}
+</script>
+
+</body>
+</html>
