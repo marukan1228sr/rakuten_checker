@@ -1,0 +1,20 @@
+from urllib.parse import urlparse
+
+def check_rakuten_url(url):
+    """楽天市場の商品URLか簡単にチェックする"""
+
+    parsed = urlparse(url)
+
+    if "rakuten.co.jp" in parsed.netloc:
+        return "✅ 楽天市場のURLです！"
+    else:
+        return "❌ 楽天市場のURLではありません。"
+
+
+print("=== 楽天URLチェッカー ===")
+
+url = input("URLを入力してください：")
+
+result = check_rakuten_url(url)
+
+print(result)
