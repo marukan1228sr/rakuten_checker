@@ -86,24 +86,47 @@
 
     .section-title{font-size:13px;color:var(--muted);font-weight:800;letter-spacing:.04em;margin:22px 4px 10px;text-transform:none}
 
-    .card-accordion{border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-soft);margin-bottom:12px;border:1px solid transparent}
-    .card-accordion.pink{background:linear-gradient(150deg,#fff 0%,var(--pink-soft) 100%);border-color:#f8d8e4}
-    .card-accordion.silver{background:linear-gradient(150deg,#fff 0%,#eef1f5 100%);border-color:#dde1e7}
-    .card-head{width:100%;border:0;background:transparent;padding:18px;display:grid;grid-template-columns:auto 1fr auto;gap:13px;align-items:center;text-align:left}
-    .card-badge{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;font-weight:900;font-size:15px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.5)}
-    .pink .card-badge{background:linear-gradient(145deg,#f07aa4,#bf2f64);color:#fff}
-    .silver .card-badge{background:linear-gradient(145deg,#e8ebef,#929ba7);color:#31363d}
-    .card-name{font-size:15px;font-weight:850;margin-bottom:4px}
-    .card-meta{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+    .card-accordion{margin-bottom:16px;position:relative}
+    .card-accordion .card-head{
+      width:100%;border:0;position:relative;overflow:hidden;
+      min-height:186px;padding:20px;border-radius:24px;
+      display:block;text-align:left;color:#fff;box-shadow:0 16px 34px rgba(24,28,36,.16);
+      transform:translateZ(0);transition:transform .18s ease,box-shadow .18s ease;
+    }
+    .card-accordion .card-head:active{transform:scale(.992)}
+    .card-accordion.pink .card-head{
+      background:
+        radial-gradient(circle at 88% 18%,rgba(255,255,255,.34),transparent 25%),
+        linear-gradient(135deg,#f36d9c 0%,#d83f78 46%,#b8255b 100%);
+    }
+    .card-accordion.silver .card-head{
+      color:#20242a;
+      background:
+        radial-gradient(circle at 86% 18%,rgba(255,255,255,.95),transparent 23%),
+        linear-gradient(135deg,#f8fafc 0%,#d9dee5 43%,#aab3bf 100%);
+    }
+    .card-accordion .card-head:before{content:"";position:absolute;inset:-40% auto auto -14%;width:70%;height:170%;transform:rotate(22deg);background:linear-gradient(90deg,rgba(255,255,255,.14),rgba(255,255,255,0));pointer-events:none}
+    .card-brand-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:relative;z-index:1}
+    .card-brand{font-size:16px;font-weight:900;letter-spacing:-.02em}
+    .card-type{font-size:10px;letter-spacing:.14em;font-weight:850;opacity:.74;margin-top:3px}
+    .card-logo{font-size:24px;font-weight:950;font-style:italic;line-height:1;opacity:.95}
+    .card-chip-row{display:flex;align-items:center;gap:10px;margin-top:22px;position:relative;z-index:1}
+    .card-chip{width:43px;height:32px;border-radius:8px;background:linear-gradient(145deg,#f4dc95,#b89545);box-shadow:inset 0 0 0 1px rgba(80,64,20,.16);position:relative;overflow:hidden}
+    .card-chip:before,.card-chip:after{content:"";position:absolute;background:rgba(95,75,26,.22)}
+    .card-chip:before{left:0;right:0;top:50%;height:1px}
+    .card-chip:after{top:0;bottom:0;left:52%;width:1px}
+    .contactless{font-size:20px;transform:rotate(90deg);opacity:.75}
+    .card-bottom{position:absolute;left:20px;right:20px;bottom:18px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px;z-index:1}
+    .card-meta{font-size:12px;display:flex;gap:8px;flex-wrap:wrap;font-weight:750;opacity:.8}
     .card-total{text-align:right}
-    .card-total strong{display:block;font-size:22px;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
-    .chev{display:inline-block;margin-top:4px;color:var(--muted);transition:transform .22s ease;font-size:13px}
+    .card-total strong{display:block;font-size:28px;letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1}
+    .chev{display:inline-block;margin-top:8px;opacity:.78;transition:transform .22s ease;font-size:13px}
     .card-accordion.open .chev{transform:rotate(180deg)}
-    .acc-body{max-height:0;overflow:hidden;transition:max-height .33s cubic-bezier(.2,.75,.25,1)}
-    .acc-inner{padding:0 18px 18px}
-    .divider{height:1px;background:rgba(99,106,117,.14);margin-bottom:14px}
+    .acc-body{max-height:0;overflow:hidden;transition:max-height .34s cubic-bezier(.2,.75,.25,1);margin:-12px 8px 0;background:#fff;border-radius:0 0 22px 22px;box-shadow:0 10px 24px rgba(24,28,36,.08)}
+    .acc-inner{padding:28px 14px 16px}
+    .divider{height:1px;background:var(--line);margin-bottom:14px}
     .stat-rows{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-    .stat-box{background:rgba(255,255,255,.82);border:1px solid rgba(105,111,121,.12);border-radius:15px;padding:12px}
+    .stat-box{background:#f8f9fb;border:1px solid var(--line);border-radius:15px;padding:12px}
     .stat-box span{display:block;color:var(--muted);font-size:11px;font-weight:750;margin-bottom:5px}
     .stat-box strong{font-size:17px;font-variant-numeric:tabular-nums}
     .stat-box.full{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between}
@@ -114,9 +137,9 @@
 
     .action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
     .action-btn{border:0;border-radius:15px;padding:13px 10px;font-weight:850;font-size:13px;display:flex;align-items:center;justify-content:center;gap:7px}
-    .pink .action-btn.primary{background:#b92f62;color:white}
-    .silver .action-btn.primary{background:#414850;color:white}
-    .action-btn.secondary{background:rgba(255,255,255,.8);color:var(--text);border:1px solid rgba(70,76,85,.12)}
+    .pink .action-btn.primary{background:#c62f66;color:white}
+    .silver .action-btn.primary{background:#3f4751;color:white}
+    .action-btn.secondary{background:#f5f6f8;color:var(--text);border:1px solid var(--line)}
     .manual-link{width:100%;margin-top:9px;border:0;background:transparent;color:var(--muted);font-size:12px;font-weight:800;padding:8px}
 
     .notice{margin:14px 0 0;padding:11px 12px;border-radius:14px;font-size:12px;line-height:1.55;display:none}
@@ -227,7 +250,7 @@
     </div>
 
     <section class="hero">
-      <div class="eyebrow">現在の推定利用額</div>
+      <div class="eyebrow">現在の引落見込み額</div>
       <div class="hero-amount" id="grandTotal">¥0</div>
       <div class="hero-sub" id="heroPeriod">—</div>
       <div class="hero-grid">
@@ -237,24 +260,26 @@
     </section>
 
     <section class="month-panel">
+      <div class="eyebrow" style="margin:0 2px 10px">引落月</div>
       <div class="year-row">
         <button class="nav-round" id="prevYear" aria-label="前年">‹</button>
         <strong id="yearLabel">2026年</strong>
         <button class="nav-round" id="nextYear" aria-label="翌年">›</button>
       </div>
       <div class="months" id="months"></div>
+      <div style="margin:10px 3px 0;font-size:11px;color:var(--muted);line-height:1.5">月タブは「利用月」ではなく、口座から引き落とされる月で管理します。</div>
     </section>
 
     <div class="section-title">カード別</div>
 
     <section class="card-accordion pink" data-card="pink">
       <button class="card-head" type="button">
-        <div class="card-badge">P</div>
-        <div>
-          <div class="card-name">楽天PINKカード</div>
+        <div class="card-brand-row"><div><div class="card-brand">楽天PINKカード</div><div class="card-type">RAKUTEN PINK CARD</div></div><div class="card-logo">R</div></div>
+        <div class="card-chip-row"><div class="card-chip"></div><div class="contactless">)))</div></div>
+        <div class="card-bottom">
           <div class="card-meta"><span id="pinkCount">0件</span><span id="pinkAlertCount">速報0件</span></div>
+          <div class="card-total"><strong id="pinkTotal">¥0</strong><span class="chev">▼</span></div>
         </div>
-        <div class="card-total"><strong id="pinkTotal">¥0</strong><span class="chev">▼</span></div>
       </button>
       <div class="acc-body"><div class="acc-inner">
         <div class="divider"></div>
@@ -263,7 +288,7 @@
           <div class="stat-box"><span>未反映速報</span><strong id="pinkAlerts">¥0</strong></div>
           <div class="stat-box full"><span>楽天側表示額</span><input class="inline-edit" id="pinkOfficial" inputmode="numeric" placeholder="未設定" aria-label="PINKカード楽天側表示額" /></div>
         </div>
-        <div class="official-note">楽天アプリの表示額が分かる場合は入力してください。設定時は「表示額＋未反映速報」を推定額として使います。</div>
+        <div class="official-note">楽天アプリのその引落月の表示額が分かる場合は入力してください。「表示額＋まだ本明細に反映されていない速報」を引落見込み額として使います。</div>
         <div class="action-grid">
           <button class="action-btn primary import-btn" data-card="pink" data-source="statement">📷 本明細を読む</button>
           <button class="action-btn secondary import-btn" data-card="pink" data-source="alert">⚡ 速報を読む</button>
@@ -274,12 +299,12 @@
 
     <section class="card-accordion silver" data-card="silver">
       <button class="card-head" type="button">
-        <div class="card-badge">S</div>
-        <div>
-          <div class="card-name">楽天カード</div>
+        <div class="card-brand-row"><div><div class="card-brand">楽天カード</div><div class="card-type">RAKUTEN CARD</div></div><div class="card-logo">R</div></div>
+        <div class="card-chip-row"><div class="card-chip"></div><div class="contactless">)))</div></div>
+        <div class="card-bottom">
           <div class="card-meta"><span id="silverCount">0件</span><span id="silverAlertCount">速報0件</span></div>
+          <div class="card-total"><strong id="silverTotal">¥0</strong><span class="chev">▼</span></div>
         </div>
-        <div class="card-total"><strong id="silverTotal">¥0</strong><span class="chev">▼</span></div>
       </button>
       <div class="acc-body"><div class="acc-inner">
         <div class="divider"></div>
@@ -335,8 +360,8 @@
         </div>
         <div class="subsection">
           <h3>データ削除</h3>
-          <p>選択中の月、または全データを削除できます。誤操作防止のため確認を表示します。</p>
-          <div class="settings-actions"><button id="deleteMonth">この月を削除</button><button id="deleteAll">すべて削除</button></div>
+          <p>選択中の引落月、または全データを削除できます。誤操作防止のため確認を表示します。</p>
+          <div class="settings-actions"><button id="deleteMonth">この引落月を削除</button><button id="deleteAll">すべて削除</button></div>
         </div>
       </div></div>
     </section>
@@ -363,6 +388,7 @@
   'use strict';
 
   const STORAGE_KEY = 'rakuten_alert_checker_v3';
+  const DATA_VERSION = 4;
   const API_KEY_STORAGE = 'rakuten_alert_checker_gemini_key';
   const MODEL_STORAGE = 'rakuten_alert_checker_gemini_model';
 
@@ -383,6 +409,7 @@
   let modalMode = null;
   let modalPayload = null;
   let pendingImport = null;
+  saveState();
 
   const $ = sel => document.querySelector(sel);
   const $$ = sel => [...document.querySelectorAll(sel)];
@@ -390,7 +417,30 @@
   function loadState(){
     try{
       const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-      return raw && typeof raw === 'object' ? {...defaultState, ...raw} : structuredClone(defaultState);
+      const loaded = raw && typeof raw === 'object' ? {...defaultState, ...raw} : structuredClone(defaultState);
+      loaded.transactions = Array.isArray(loaded.transactions) ? loaded.transactions : [];
+      loaded.officialTotals = loaded.officialTotals && typeof loaded.officialTotals === 'object' ? loaded.officialTotals : {};
+      loaded.mergedHistory = Array.isArray(loaded.mergedHistory) ? loaded.mergedHistory : [];
+      // v3以前: 明細が利用日だけで月分けされていたため、引落月を追加して移行する。
+      // 楽天側表示額が選択中カード・月にある場合は、その引落月を優先する。
+      loaded.transactions.forEach(t=>{
+        if(!t.debitMonth){
+          const selectedKey=`${loaded.selectedYear}-${pad2(loaded.selectedMonth)}`;
+          const usageKey=t.date ? t.date.slice(0,7) : selectedKey;
+          const [uy,um]=usageKey.split('-').map(Number);
+          const candidates=Object.keys(loaded.officialTotals)
+            .filter(k=>k.endsWith(`:${t.card}`))
+            .map(k=>k.split(':')[0])
+            .filter(k=>{
+              const [y,m]=k.split('-').map(Number);
+              const diff=(y-uy)*12+(m-um);
+              return diff>=0 && diff<=2;
+            }).sort();
+          t.debitMonth=candidates[0] || usageKey;
+        }
+      });
+      loaded.dataVersion = DATA_VERSION;
+      return loaded;
     }catch(e){ return structuredClone(defaultState); }
   }
   function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
@@ -410,13 +460,21 @@
     return cleanMerchant(v).toLowerCase().replace(/[\s　・･._\-\(\)（）/]/g,'').replace(/カード利用速報|利用速報|楽天カード/g,'');
   }
 
-  function parseDateFlexible(v, fallbackYear=state.selectedYear){
-    if(!v) return `${fallbackYear}-${pad2(state.selectedMonth)}-01`;
+  function parseDateFlexible(v, fallbackYear=state.selectedYear, fallbackDebitMonth=state.selectedMonth){
+    if(!v){
+      const d=new Date(); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+    }
     let s = normalizeDigits(v).trim().replace(/[年月\.]/g,'-').replace(/日/g,'').replace(/\//g,'-');
     const parts = s.split('-').filter(Boolean).map(Number);
     if(parts.length >= 3 && parts[0] > 1000) return `${parts[0]}-${pad2(parts[1])}-${pad2(parts[2])}`;
-    if(parts.length >= 2) return `${fallbackYear}-${pad2(parts[0])}-${pad2(parts[1])}`;
-    return `${fallbackYear}-${pad2(state.selectedMonth)}-01`;
+    if(parts.length >= 2){
+      const mm=parts[0], dd=parts[1];
+      // 引落月が1〜2月で、利用日が前年12月など年をまたぐケースを補正。
+      let y=fallbackYear;
+      if(mm > fallbackDebitMonth + 2) y=fallbackYear-1;
+      return `${y}-${pad2(mm)}-${pad2(dd)}`;
+    }
+    const d=new Date(); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
   }
 
   function dateDistance(a,b){
@@ -426,7 +484,7 @@
   }
 
   function getMonthTransactions(){
-    return state.transactions.filter(t => !t.merged && t.date?.startsWith(monthKey()));
+    return state.transactions.filter(t => !t.merged && t.debitMonth === monthKey());
   }
   function getCardTransactions(card){ return getMonthTransactions().filter(t => t.card === card); }
   function sum(list){ return list.reduce((a,b)=>a+Number(b.amount||0),0); }
@@ -455,7 +513,7 @@
     $('#grandTotal').textContent = yen(grand);
     $('#statementTotal').textContent = yen(st);
     $('#alertTotal').textContent = yen(al);
-    $('#heroPeriod').textContent = `${state.selectedYear}年${state.selectedMonth}月・PINKカード＋楽天カード`;
+    $('#heroPeriod').textContent = `${state.selectedYear}年${state.selectedMonth}月 引落分・PINKカード＋楽天カード`;
     $('#yearLabel').textContent = `${state.selectedYear}年`;
 
     setCardUI('pink',p);
@@ -493,7 +551,7 @@
     if(activeFilter==='pink' || activeFilter==='silver') list=list.filter(t=>t.card===activeFilter);
     if(q) list=list.filter(t=>cleanMerchant(t.merchant).toLowerCase().includes(q));
     const box=$('#txList'); box.innerHTML='';
-    if(!list.length){ box.innerHTML='<div class="empty">この月の明細はまだありません。<br>カードを開いて「本明細を読む」または「速報を読む」から追加できます。</div>'; return; }
+    if(!list.length){ box.innerHTML='<div class="empty">この引落月の明細はまだありません。<br>カードを開いて「本明細を読む」または「速報を読む」から追加できます。</div>'; return; }
     list.forEach(t=>{
       const item=document.createElement('div'); item.className='tx-item';
       const cardLabel=t.card==='pink'?'PINK':'銀';
@@ -592,53 +650,54 @@
     const key=$('#apiKeyInput').value.trim() || localStorage.getItem(API_KEY_STORAGE) || '';
     const model=$('#modelInput').value.trim() || localStorage.getItem(MODEL_STORAGE) || 'gemini-2.5-flash';
     localStorage.setItem(API_KEY_STORAGE,key); localStorage.setItem(MODEL_STORAGE,model);
-    showLoading('Geminiが明細を読み取っています',`${files.length}枚の画像を解析中…`);
+    showLoading('Geminiが明細を読み取っています',`${files.length}枚の画像をまとめて解析中…`);
     try{
-      let combined=[]; let latestOfficial=null;
+      const parts=[{text:buildPrompt(source,card,files.length)}];
       for(let i=0;i<files.length;i++){
-        $('#loadingSub').textContent=`${i+1}/${files.length}枚目を解析中…`;
+        $('#loadingSub').textContent=`${i+1}/${files.length}枚目を準備中…`;
         const image=await compressImage(files[i]);
-        const prompt=buildPrompt(source,card);
-        const parts=[{text:prompt},{inline_data:{mime_type:image.mime,data:image.base64}}];
-        const data=await geminiRequest(model,key,parts,true);
-        const raw=extractGeminiText(data);
-        const parsed=parseGeminiJson(raw);
-        if(Number.isFinite(Number(parsed.officialTotal))) latestOfficial=numberFrom(parsed.officialTotal);
-        if(Array.isArray(parsed.transactions)) combined.push(...parsed.transactions);
+        parts.push({inline_data:{mime_type:image.mime,data:image.base64}});
       }
-      hideLoading();
-      const normalized=combined.map(x=>({
+      $('#loadingSub').textContent='スクロールの重複部分も含めて照合中…';
+      const data=await geminiRequest(model,key,parts,true);
+      const parsed=parseGeminiJson(extractGeminiText(data));
+      const officialTotal=Number.isFinite(Number(parsed.officialTotal)) ? numberFrom(parsed.officialTotal) : null;
+      const detectedPeriod=typeof parsed.detectedPeriod==='string' ? parsed.detectedPeriod : null;
+      const rows=Array.isArray(parsed.transactions) ? parsed.transactions : [];
+      const batch=id();
+      const normalized=rows.map((x,index)=>({
         id:id(),
-        date:parseDateFlexible(x.date,state.selectedYear),
+        debitMonth:monthKey(),
+        date:parseDateFlexible(x.date,state.selectedYear,state.selectedMonth),
         merchant:cleanMerchant(x.merchant || (source==='alert'?'カード利用速報':'明細名なし')),
         amount:numberFrom(x.amount),
-        card,
-        source,
-        createdAt:Date.now()
+        card,source,createdAt:Date.now(),importBatchId:batch,importIndex:index
       })).filter(x=>x.amount>0);
-      // AI result dedupe within current import
-      const unique=[]; const seen=new Set();
-      normalized.forEach(x=>{const k=`${x.date}|${normalizeMerchant(x.merchant)}|${x.amount}`; if(!seen.has(k)){seen.add(k);unique.push(x)}});
-      if(!unique.length && latestOfficial===null){ toast('明細を読み取れませんでした'); return; }
-      if(source==='statement') unique.forEach(x=>x.matchCandidates=findAlertCandidates(x));
-      openReviewModal({card,source,items:unique,officialTotal:latestOfficial});
+      hideLoading();
+      if(!normalized.length && officialTotal===null){ toast('明細を読み取れませんでした'); return; }
+      if(source==='statement') normalized.forEach(x=>x.matchCandidates=findAlertCandidates(x));
+      openReviewModal({card,source,items:normalized,officialTotal,detectedPeriod,debitMonth:monthKey()});
     }catch(err){ hideLoading(); console.error(err); alert('AI読取に失敗しました。\n\n'+humanApiError(err)); }
   }
 
-  function buildPrompt(source,card){
+  function buildPrompt(source,card,imageCount=1){
     const sourceText=source==='statement'?'楽天カードアプリ等の「本明細・利用明細」':'カード利用速報・速報通知';
     return `あなたはクレジットカード明細の画像読取専用AIです。\n`+
-      `この画像は ${card==='pink'?'楽天PINKカード':'楽天カード'} の ${sourceText} です。\n`+
-      `画像内の取引を漏れなく抽出してください。\n`+
+      `この画像群は ${card==='pink'?'楽天PINKカード':'楽天カード'} の ${sourceText} です。\n`+
+      `ユーザーは ${state.selectedYear}年${state.selectedMonth}月を「口座から引き落とされる月」として管理しています。利用日が前月でも、画像に表示されている明細はすべて抽出してください。\n`+
+      `${imageCount}枚は同じ明細画面を縦にスクロールしながら撮った連続スクリーンショットの可能性があります。画像同士で同じ行が重なっていたら、その重複だけを1件にまとめてください。\n`+
+      `ただし、同一日・同一店・同額の取引が実際に複数行表示されている場合は、別取引として行数分を残してください。\n`+
       `返答は必ずJSONだけにしてください。説明文やMarkdownは禁止です。\n`+
-      `形式: {"officialTotal": number|null, "transactions":[{"date":"YYYY-MM-DD または MM-DD","merchant":"利用先・店名。速報で店名が無ければカード利用速報","amount":1234}]}\n`+
+      `形式: {"officialTotal": number|null, "detectedPeriod":"YYYY-MM"|null, "transactions":[{"date":"YYYY-MM-DD または MM-DD","merchant":"利用先・店名。速報で店名が無ければカード利用速報","amount":1234}]}\n`+
       `ルール:\n`+
       `- 金額は円記号・カンマなしの正の整数。\n`+
-      `- 同じ取引を重複して出さない。\n`+
-      `- 日付は画像に年が無ければ MM-DD でよい。\n`+
-      `- 本明細で「現在の利用額」「ご利用金額」「お支払い金額」等、カード全体の表示額が明確なら officialTotal に入れる。明確でなければ null。\n`+
-      `- 取消・返金が画像で明確な場合は amount を負数にせず、その行は transactions から除外する。\n`+
-      `- 読めない文字を勝手に推測しすぎない。店名不明なら「明細名不明」。`;
+      `- 日付は各取引の「利用日」。画面上部の2026/10等を取引日として使わない。\n`+
+      `- 画面上部などに対象期間の2026/10等が明確なら detectedPeriod に入れる。\n`+
+      `- 本明細で「お支払い金額」「ご利用金額」「現在の利用額」等、カード全体の表示額が明確なら officialTotal に入れる。明確でなければ null。\n`+
+      `- 画面下部の広告・おすすめ情報・メニュー・ボタンの金額は取引として抽出しない。\n`+
+      `- 取消・返金が画像で明確な行は transactions から除外する。\n`+
+      `- 読めない文字を勝手に推測しすぎない。店名不明なら「明細名不明」。\n`+
+      `- 取引行の店名、利用日、金額を漏れなく抽出することを最優先する。`;
   }
 
   async function geminiRequest(model,key,parts,jsonMode){
@@ -690,7 +749,7 @@
 
   // Matching alerts -> statements
   function findAlertCandidates(statement){
-    const alerts=state.transactions.filter(t=>!t.merged && t.card===statement.card && t.source==='alert' && Number(t.amount)===Number(statement.amount));
+    const alerts=state.transactions.filter(t=>!t.merged && t.card===statement.card && t.source==='alert' && t.debitMonth===statement.debitMonth && Number(t.amount)===Number(statement.amount));
     return alerts.map(a=>{
       const dd=dateDistance(a.date,statement.date);
       const am=normalizeMerchant(a.merchant), sm=normalizeMerchant(statement.merchant);
@@ -711,7 +770,16 @@
   function renderReviewModal(){
     const p=modalPayload; const body=$('#modalBody');
     const cardName=p.card==='pink'?'楽天PINKカード':'楽天カード';
-    body.innerHTML=`<div class="review-summary"><strong>${cardName}</strong>・${p.source==='statement'?'本明細':'速報'}<br>${p.items.length}件を検出しました。登録前に日付・明細名・金額を修正できます。${p.source==='statement'?' 一致する速報が1件だけ見つかった場合は、登録時に自動で本明細へ置き換えます。':''}</div>`;
+    const target=p.debitMonth || monthKey();
+    const [ty,tm]=target.split('-');
+    let periodNote='';
+    if(p.detectedPeriod && /^\d{4}-\d{2}$/.test(p.detectedPeriod) && p.detectedPeriod!==target){
+      periodNote=`<div class="match-hint warn">⚠ 画像では ${escapeHtml(p.detectedPeriod)} が検出されました。登録先の引落月を確認してください。</div>`;
+    }
+    body.innerHTML=`<div class="review-summary"><strong>${cardName}</strong>・${p.source==='statement'?'本明細':'速報'}<br><strong>${Number(ty)}年${Number(tm)}月 引落分</strong>へ ${p.items.length}件を登録します。<br>利用日は前月でもそのまま残ります。登録前に日付・明細名・金額を修正できます。${p.source==='statement'?' 一致する速報は本明細へ自動統合します。':''}${periodNote}</div>`;
+    const debitWrap=document.createElement('div'); debitWrap.className='field';
+    debitWrap.innerHTML=`<label>登録先の引落月</label><input class="text-input" id="reviewDebitMonth" type="month" value="${escapeHtml(target)}">`;
+    body.appendChild(debitWrap);
     if(p.source==='statement'){
       const wrap=document.createElement('div');wrap.className='field';
       wrap.innerHTML=`<label>楽天側表示額（画像から検出した場合）</label><input class="text-input" id="reviewOfficial" inputmode="numeric" placeholder="未検出・未設定" value="${p.officialTotal===null?'':p.officialTotal.toLocaleString('ja-JP')}">`;
@@ -746,8 +814,11 @@
       it.merchant=cleanMerchant(div.querySelector('.r-merchant').value);
       if(p.source==='statement') it.matchCandidates=findAlertCandidates(it);
     });
+    const debitInp=$('#reviewDebitMonth');
+    if(debitInp && debitInp.value){ p.debitMonth=debitInp.value; p.items.forEach(it=>it.debitMonth=p.debitMonth); }
     if(p.source==='statement'){
       const inp=$('#reviewOfficial'); if(inp) p.officialTotal=inp.value.trim()?numberFrom(inp.value):null;
+      p.items.forEach(it=>it.matchCandidates=findAlertCandidates(it));
     }
   }
 
@@ -756,7 +827,8 @@
   $('#quickAdd').onclick=()=>openManualModal('pink',true);
   function openManualModal(defaultCard='pink',allowCardSwitch=false){
     modalMode='manual';
-    modalPayload={id:id(),date:`${monthKey()}-${pad2(Math.min(new Date().getDate(),28))}`,merchant:'',amount:0,card:defaultCard,source:'statement',createdAt:Date.now(),allowCardSwitch};
+    const d=new Date();
+    modalPayload={id:id(),debitMonth:monthKey(),date:`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`,merchant:'',amount:0,card:defaultCard,source:'statement',createdAt:Date.now(),allowCardSwitch};
     $('#modalTitle').textContent='明細を手動追加'; $('#modalSave').textContent='追加する'; renderSingleEdit(); openModal();
   }
   function openEditModal(txId){
@@ -769,7 +841,8 @@
     body.innerHTML=`
       <div class="segmented" id="sourceSeg"><button data-v="statement" class="${p.source==='statement'?'active':''}">本明細</button><button data-v="alert" class="${p.source==='alert'?'active':''}">速報</button></div>
       <div class="segmented" id="cardSeg"><button data-v="pink" class="${p.card==='pink'?'active':''}">PINKカード</button><button data-v="silver" class="${p.card==='silver'?'active':''}">楽天カード</button></div>
-      <div class="field"><label>日付</label><input class="text-input" id="editDate" type="date" value="${escapeHtml(p.date)}"></div>
+      <div class="field"><label>引落月</label><input class="text-input" id="editDebitMonth" type="month" value="${escapeHtml(p.debitMonth || monthKey())}"></div>
+      <div class="field"><label>利用日</label><input class="text-input" id="editDate" type="date" value="${escapeHtml(p.date)}"></div>
       <div class="field"><label>明細名・利用先</label><input class="text-input" id="editMerchant" value="${escapeHtml(p.merchant)}" placeholder="例：ヤマザワ松見町店"></div>
       <div class="field"><label>金額</label><input class="text-input" id="editAmount" inputmode="numeric" value="${p.amount?p.amount.toLocaleString('ja-JP'):''}" placeholder="0"></div>
       ${isEdit?'<div class="subsection"><button class="danger-btn" id="deleteTx">この明細を削除</button></div>':''}`;
@@ -788,9 +861,10 @@
       collectReviewInputs();
       const p=modalPayload;
       const valid=p.items.filter(x=>x.amount>0 && x.date);
+      const existingBefore=state.transactions.slice();
       let merged=0,duplicates=0;
       valid.forEach(item=>{
-        if(isDuplicateExisting(item)){duplicates++;return;}
+        if(isDuplicateExisting(item,existingBefore)){duplicates++;return;}
         if(p.source==='statement'){
           const candidates=findAlertCandidates(item);
           if(candidates.length===1){
@@ -800,7 +874,7 @@
         }
         delete item.matchCandidates; state.transactions.push(item);
       });
-      if(p.source==='statement' && p.officialTotal!==null) state.officialTotals[officialKey(p.card)] = p.officialTotal;
+      if(p.source==='statement' && p.officialTotal!==null){ const [yy,mm]=p.debitMonth.split('-').map(Number); state.officialTotals[officialKey(p.card,yy,mm)] = p.officialTotal; }
       saveState(); closeModal(); render();
       let msg=`${valid.length-duplicates}件を登録しました`;
       if(merged) msg+=`・速報${merged}件を本明細へ統合`;
@@ -809,7 +883,7 @@
     }
     if(modalMode==='manual' || modalMode==='edit'){
       const p=modalPayload;
-      p.date=$('#editDate').value; p.merchant=cleanMerchant($('#editMerchant').value)||'明細名なし'; p.amount=numberFrom($('#editAmount').value);
+      p.debitMonth=$('#editDebitMonth').value || monthKey(); p.date=$('#editDate').value; p.merchant=cleanMerchant($('#editMerchant').value)||'明細名なし'; p.amount=numberFrom($('#editAmount').value);
       if(!p.date || !p.amount){toast('日付と金額を入力してください');return}
       if(modalMode==='manual'){
         if(isDuplicateExisting(p) && !confirm('同じ日付・金額・明細名のデータがあります。追加しますか？')) return;
@@ -822,13 +896,13 @@
     }
   };
 
-  function isDuplicateExisting(item){
-    return state.transactions.some(t=>!t.merged && t.card===item.card && t.source===item.source && Number(t.amount)===Number(item.amount) && t.date===item.date && normalizeMerchant(t.merchant)===normalizeMerchant(item.merchant));
+  function isDuplicateExisting(item,pool=state.transactions){
+    return pool.some(t=>!t.merged && t.card===item.card && t.source===item.source && t.debitMonth===item.debitMonth && Number(t.amount)===Number(item.amount) && t.date===item.date && normalizeMerchant(t.merchant)===normalizeMerchant(item.merchant));
   }
 
   // Backup
   $('#exportData').onclick=()=>{
-    const payload={version:3,exportedAt:new Date().toISOString(),state};
+    const payload={version:DATA_VERSION,exportedAt:new Date().toISOString(),state};
     const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`rakuten-checker-backup-${monthKey()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('バックアップを書き出しました');
   };
@@ -838,8 +912,8 @@
     try{const json=JSON.parse(await f.text()); if(!json.state || !Array.isArray(json.state.transactions))throw new Error(); if(!confirm('現在のデータをバックアップ内容で置き換えますか？'))return; state={...defaultState,...json.state};saveState();render();toast('バックアップを復元しました')}catch{alert('バックアップファイルを読み込めませんでした')}
   };
   $('#deleteMonth').onclick=()=>{
-    if(!confirm(`${state.selectedYear}年${state.selectedMonth}月のデータを削除しますか？`))return;
-    const mk=monthKey(); state.transactions=state.transactions.filter(t=>!t.date?.startsWith(mk)); delete state.officialTotals[officialKey('pink')];delete state.officialTotals[officialKey('silver')];saveState();render();toast('この月のデータを削除しました');
+    if(!confirm(`${state.selectedYear}年${state.selectedMonth}月 引落分のデータを削除しますか？`))return;
+    const mk=monthKey(); state.transactions=state.transactions.filter(t=>t.debitMonth!==mk); delete state.officialTotals[officialKey('pink')];delete state.officialTotals[officialKey('silver')];saveState();render();toast('この引落月のデータを削除しました');
   };
   $('#deleteAll').onclick=()=>{
     if(!confirm('すべての明細データと表示額を削除します。APIキーは残ります。よろしいですか？'))return;
