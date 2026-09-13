@@ -1,96 +1,857 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>楽天URLチェッカー</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f6f7f9" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>楽天カード 速報チェッカー</title>
   <style>
-    body {
-      font-family: sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 30px 20px;
+    :root{
+      --bg:#f5f6f8;
+      --surface:#ffffff;
+      --surface-2:#f8f9fb;
+      --text:#17191d;
+      --muted:#777d87;
+      --line:#e7e9ed;
+      --shadow:0 10px 30px rgba(24,28,36,.07);
+      --shadow-soft:0 4px 18px rgba(24,28,36,.055);
+      --radius-xl:24px;
+      --radius-lg:18px;
+      --radius-md:14px;
+      --pink:#d94b7d;
+      --pink-soft:#fff2f7;
+      --pink-line:#f4c5d6;
+      --silver:#5d6672;
+      --silver-soft:#f1f3f6;
+      --silver-line:#d7dce3;
+      --accent:#8f203f;
+      --good:#1c8c62;
+      --good-soft:#eaf8f2;
+      --warn:#a56b00;
+      --warn-soft:#fff7df;
+      --danger:#c53636;
+      --danger-soft:#fff0f0;
+      --focus:0 0 0 4px rgba(217,75,125,.12);
     }
 
-    .box {
-      max-width: 500px;
-      margin: 50px auto;
-      background: white;
-      padding: 30px 20px;
-      border-radius: 20px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-      text-align: center;
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      background:var(--bg);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;
+      -webkit-font-smoothing:antialiased;
+      padding-bottom:calc(30px + env(safe-area-inset-bottom));
     }
+    button,input,select{font:inherit}
+    button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+    .app{max-width:680px;margin:0 auto;padding:16px 14px 44px}
 
-    h1 {
-      font-size: 26px;
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 2px 14px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em}
+    .brand-mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,#b3274e,#7f1735);color:white;display:grid;place-items:center;box-shadow:var(--shadow-soft);font-size:16px}
+    .icon-btn{width:42px;height:42px;border:0;border-radius:14px;background:var(--surface);box-shadow:var(--shadow-soft);color:var(--text);display:grid;place-items:center;font-size:18px}
+
+    .hero{
+      background:linear-gradient(160deg,#ffffff 0%,#fbfbfc 70%,#f4f5f7 100%);
+      border:1px solid rgba(0,0,0,.04);
+      border-radius:28px;
+      padding:24px 22px 20px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      position:relative;
     }
+    .hero:after{content:"";position:absolute;width:160px;height:160px;border-radius:50%;right:-68px;top:-72px;background:radial-gradient(circle,rgba(217,75,125,.11),rgba(217,75,125,0) 70%)}
+    .eyebrow{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:.03em}
+    .hero-amount{font-size:42px;line-height:1.1;font-weight:850;letter-spacing:-.045em;margin:8px 0 10px;font-variant-numeric:tabular-nums}
+    .hero-sub{font-size:13px;color:var(--muted)}
+    .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+    .mini-stat{background:rgba(255,255,255,.82);border:1px solid var(--line);border-radius:16px;padding:12px 13px}
+    .mini-stat span{display:block;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px}
+    .mini-stat strong{font-size:17px;font-variant-numeric:tabular-nums}
 
-    input {
-      width: 90%;
-      padding: 15px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      margin-top: 20px;
-    }
+    .month-panel{margin-top:14px;background:var(--surface);border-radius:20px;padding:14px;box-shadow:var(--shadow-soft)}
+    .year-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .year-row strong{font-size:17px}
+    .nav-round{width:38px;height:38px;border:1px solid var(--line);background:var(--surface);border-radius:12px;color:var(--text);font-weight:800}
+    .months{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 1px 3px}
+    .months::-webkit-scrollbar{display:none}
+    .month-chip{flex:0 0 auto;border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:8px 12px;font-size:13px;font-weight:750}
+    .month-chip.active{background:#1e2025;color:#fff;border-color:#1e2025;box-shadow:0 6px 14px rgba(30,32,37,.16)}
 
-    button {
-      margin-top: 15px;
-      padding: 15px 30px;
-      border: none;
-      border-radius: 10px;
-      background: #bf0000;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-    }
+    .section-title{font-size:13px;color:var(--muted);font-weight:800;letter-spacing:.04em;margin:22px 4px 10px;text-transform:none}
 
-    #result {
-      margin-top: 25px;
-      font-size: 18px;
-      font-weight: bold;
+    .card-accordion{border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-soft);margin-bottom:12px;border:1px solid transparent}
+    .card-accordion.pink{background:linear-gradient(150deg,#fff 0%,var(--pink-soft) 100%);border-color:#f8d8e4}
+    .card-accordion.silver{background:linear-gradient(150deg,#fff 0%,#eef1f5 100%);border-color:#dde1e7}
+    .card-head{width:100%;border:0;background:transparent;padding:18px;display:grid;grid-template-columns:auto 1fr auto;gap:13px;align-items:center;text-align:left}
+    .card-badge{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;font-weight:900;font-size:15px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.5)}
+    .pink .card-badge{background:linear-gradient(145deg,#f07aa4,#bf2f64);color:#fff}
+    .silver .card-badge{background:linear-gradient(145deg,#e8ebef,#929ba7);color:#31363d}
+    .card-name{font-size:15px;font-weight:850;margin-bottom:4px}
+    .card-meta{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+    .card-total{text-align:right}
+    .card-total strong{display:block;font-size:22px;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+    .chev{display:inline-block;margin-top:4px;color:var(--muted);transition:transform .22s ease;font-size:13px}
+    .card-accordion.open .chev{transform:rotate(180deg)}
+    .acc-body{max-height:0;overflow:hidden;transition:max-height .33s cubic-bezier(.2,.75,.25,1)}
+    .acc-inner{padding:0 18px 18px}
+    .divider{height:1px;background:rgba(99,106,117,.14);margin-bottom:14px}
+    .stat-rows{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .stat-box{background:rgba(255,255,255,.82);border:1px solid rgba(105,111,121,.12);border-radius:15px;padding:12px}
+    .stat-box span{display:block;color:var(--muted);font-size:11px;font-weight:750;margin-bottom:5px}
+    .stat-box strong{font-size:17px;font-variant-numeric:tabular-nums}
+    .stat-box.full{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between}
+    .stat-box.full span{margin:0}
+    .inline-edit{border:0;background:transparent;text-align:right;font-weight:850;font-size:17px;width:130px;color:var(--text);padding:2px 0;border-bottom:1px dashed #b7bbc2}
+    .inline-edit:focus{outline:0;border-bottom-color:var(--pink)}
+    .official-note{font-size:11px;color:var(--muted);margin:8px 2px 0;line-height:1.55}
+
+    .action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+    .action-btn{border:0;border-radius:15px;padding:13px 10px;font-weight:850;font-size:13px;display:flex;align-items:center;justify-content:center;gap:7px}
+    .pink .action-btn.primary{background:#b92f62;color:white}
+    .silver .action-btn.primary{background:#414850;color:white}
+    .action-btn.secondary{background:rgba(255,255,255,.8);color:var(--text);border:1px solid rgba(70,76,85,.12)}
+    .manual-link{width:100%;margin-top:9px;border:0;background:transparent;color:var(--muted);font-size:12px;font-weight:800;padding:8px}
+
+    .notice{margin:14px 0 0;padding:11px 12px;border-radius:14px;font-size:12px;line-height:1.55;display:none}
+    .notice.show{display:block}
+    .notice.info{background:#f1f5ff;color:#425472}
+    .notice.good{background:var(--good-soft);color:#176b4d}
+    .notice.warn{background:var(--warn-soft);color:#7f5500}
+
+    .transactions-panel{background:var(--surface);border-radius:var(--radius-xl);padding:16px;box-shadow:var(--shadow-soft)}
+    .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+    .search{flex:1 1 190px;border:1px solid var(--line);border-radius:14px;padding:11px 12px;background:#fafbfc;outline:0;min-width:0}
+    .search:focus{box-shadow:var(--focus);border-color:#d7b0bf;background:#fff}
+    .filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;width:100%}
+    .filters::-webkit-scrollbar{display:none}
+    .filter-chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 10px;font-size:12px;color:var(--muted);font-weight:800;white-space:nowrap}
+    .filter-chip.active{background:#25282e;color:#fff;border-color:#25282e}
+    .tx-list{display:flex;flex-direction:column;gap:8px}
+    .tx-item{border:1px solid var(--line);border-radius:16px;padding:13px;background:#fff;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+    .tx-main{min-width:0}
+    .tx-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px}
+    .tx-date{font-size:12px;color:var(--muted);font-weight:750}
+    .pill{font-size:10px;font-weight:850;border-radius:999px;padding:4px 7px}
+    .pill.alert{background:var(--warn-soft);color:var(--warn)}
+    .pill.statement{background:var(--good-soft);color:var(--good)}
+    .pill.pink{background:var(--pink-soft);color:#a72957}
+    .pill.silver{background:var(--silver-soft);color:#56606b}
+    .tx-name{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tx-amount{font-size:16px;font-weight:850;font-variant-numeric:tabular-nums;text-align:right}
+    .tx-more{border:0;background:#f6f7f9;border-radius:10px;width:34px;height:34px;margin-top:6px;color:#646b75;font-weight:900}
+    .empty{padding:28px 12px;text-align:center;color:var(--muted);font-size:13px;line-height:1.7}
+
+    .settings{margin-top:14px;background:var(--surface);border-radius:20px;box-shadow:var(--shadow-soft);overflow:hidden}
+    .settings-head{width:100%;border:0;background:#fff;padding:16px;display:flex;align-items:center;justify-content:space-between;font-weight:850;text-align:left}
+    .settings-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+    .settings.open .settings-body{max-height:1200px}
+    .settings.open .settings-chev{transform:rotate(180deg)}
+    .settings-chev{transition:transform .2s ease}
+    .settings-inner{padding:0 16px 18px}
+    .field{margin-top:12px}
+    .field label{display:block;font-size:12px;color:var(--muted);font-weight:800;margin:0 0 6px 2px}
+    .text-input{width:100%;border:1px solid var(--line);background:#fafbfc;border-radius:13px;padding:12px 13px;outline:0}
+    .text-input:focus{background:#fff;border-color:#d7b0bf;box-shadow:var(--focus)}
+    .input-row{display:grid;grid-template-columns:1fr auto;gap:8px}
+    .small-btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:0 12px;font-size:12px;font-weight:850;color:#4f5660}
+    .settings-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+    .settings-actions button{border:1px solid var(--line);background:#fff;border-radius:13px;padding:11px;font-weight:800;font-size:12px}
+    .api-status{margin-top:9px;font-size:12px;font-weight:800;color:var(--muted)}
+    .api-status.good{color:var(--good)}
+    .api-status.bad{color:var(--danger)}
+    .subsection{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+    .subsection h3{font-size:13px;margin:0 0 5px}
+    .subsection p{font-size:11px;color:var(--muted);line-height:1.55;margin:0 0 10px}
+    .danger-btn{width:100%;border:1px solid #f1caca;background:var(--danger-soft);color:var(--danger);border-radius:13px;padding:12px;font-weight:850}
+
+    .fab{position:sticky;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;justify-content:center;margin-top:16px;z-index:10;pointer-events:none}
+    .fab button{pointer-events:auto;border:0;border-radius:999px;background:#202328;color:#fff;font-weight:850;padding:14px 19px;box-shadow:0 12px 28px rgba(25,28,33,.28);display:flex;align-items:center;gap:8px}
+
+    .modal-backdrop{position:fixed;inset:0;background:rgba(17,19,23,.48);backdrop-filter:blur(5px);display:none;align-items:flex-end;justify-content:center;z-index:100;padding:0}
+    .modal-backdrop.show{display:flex}
+    .modal{width:min(680px,100%);max-height:90vh;background:#fff;border-radius:26px 26px 0 0;box-shadow:0 -20px 50px rgba(0,0,0,.18);overflow:hidden;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+    .modal-handle{width:44px;height:5px;border-radius:999px;background:#d8dbe0;margin:10px auto 4px}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 10px;border-bottom:1px solid var(--line)}
+    .modal-head h2{font-size:17px;margin:0}
+    .close-btn{width:36px;height:36px;border:0;border-radius:12px;background:#f3f4f6;font-size:18px}
+    .modal-body{padding:16px 18px;overflow:auto}
+    .modal-footer{padding:12px 18px 14px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1.4fr;gap:8px;background:#fff}
+    .modal-footer button{border:0;border-radius:14px;padding:13px;font-weight:850}
+    .btn-cancel{background:#f1f2f4;color:#555c65}
+    .btn-save{background:#202328;color:#fff}
+    .review-summary{background:#f6f7f9;border-radius:16px;padding:12px;margin-bottom:12px;font-size:12px;color:#5d6570;line-height:1.55}
+    .review-item{border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:9px}
+    .review-grid{display:grid;grid-template-columns:1fr 110px;gap:8px;margin-bottom:8px}
+    .review-grid .full{grid-column:1/-1}
+    .review-item input,.review-item select{width:100%;border:1px solid var(--line);border-radius:11px;padding:10px;background:#fbfbfc;outline:0}
+    .review-item input:focus,.review-item select:focus{background:#fff;border-color:#d7b0bf;box-shadow:var(--focus)}
+    .review-label{font-size:10px;color:var(--muted);font-weight:800;margin:0 0 4px 2px}
+    .match-hint{font-size:11px;border-radius:11px;padding:8px 9px;background:var(--good-soft);color:#196d50;margin-top:7px;line-height:1.45}
+    .match-hint.warn{background:var(--warn-soft);color:#7f5500}
+    .remove-review{border:0;background:transparent;color:var(--danger);font-size:11px;font-weight:850;padding:4px 0}
+
+    .loading{position:fixed;inset:0;background:rgba(245,246,248,.88);backdrop-filter:blur(4px);display:none;z-index:200;align-items:center;justify-content:center;padding:30px}
+    .loading.show{display:flex}
+    .loading-card{background:#fff;border-radius:24px;padding:24px;box-shadow:var(--shadow);text-align:center;max-width:300px;width:100%}
+    .spinner{width:36px;height:36px;border:4px solid #eceef1;border-top-color:#202328;border-radius:50%;margin:0 auto 14px;animation:spin .75s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-card strong{display:block;font-size:15px;margin-bottom:5px}
+    .loading-card span{font-size:12px;color:var(--muted)}
+
+    .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#202328;color:#fff;border-radius:14px;padding:11px 14px;box-shadow:0 10px 24px rgba(0,0,0,.2);font-size:12px;font-weight:750;opacity:0;pointer-events:none;transition:.2s;z-index:300;max-width:calc(100% - 32px);text-align:center}
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+
+    .segmented{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#f0f1f3;padding:4px;border-radius:13px;margin-bottom:12px}
+    .segmented button{border:0;border-radius:10px;padding:9px;background:transparent;color:#6a7079;font-size:12px;font-weight:850}
+    .segmented button.active{background:#fff;color:#1e2126;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+
+    @media (min-width:680px){
+      .app{padding-top:24px}
+      .modal-backdrop{align-items:center;padding:24px}
+      .modal{border-radius:26px;max-height:86vh}
     }
   </style>
 </head>
-
 <body>
+  <main class="app">
+    <div class="topbar">
+      <div class="brand"><div class="brand-mark">R</div><div>楽天カード 速報チェッカー</div></div>
+      <button class="icon-btn" id="settingsShortcut" aria-label="設定">⚙︎</button>
+    </div>
 
-<div class="box">
-  <h1>🛒 楽天URLチェッカー</h1>
+    <section class="hero">
+      <div class="eyebrow">現在の推定利用額</div>
+      <div class="hero-amount" id="grandTotal">¥0</div>
+      <div class="hero-sub" id="heroPeriod">—</div>
+      <div class="hero-grid">
+        <div class="mini-stat"><span>本明細</span><strong id="statementTotal">¥0</strong></div>
+        <div class="mini-stat"><span>未反映速報</span><strong id="alertTotal">¥0</strong></div>
+      </div>
+    </section>
 
-  <p>楽天市場の商品URLを入力してください</p>
+    <section class="month-panel">
+      <div class="year-row">
+        <button class="nav-round" id="prevYear" aria-label="前年">‹</button>
+        <strong id="yearLabel">2026年</strong>
+        <button class="nav-round" id="nextYear" aria-label="翌年">›</button>
+      </div>
+      <div class="months" id="months"></div>
+    </section>
 
-  <input
-    id="url"
-    type="text"
-    placeholder="https://item.rakuten.co.jp/..."
-  >
+    <div class="section-title">カード別</div>
 
-  <br>
+    <section class="card-accordion pink" data-card="pink">
+      <button class="card-head" type="button">
+        <div class="card-badge">P</div>
+        <div>
+          <div class="card-name">楽天PINKカード</div>
+          <div class="card-meta"><span id="pinkCount">0件</span><span id="pinkAlertCount">速報0件</span></div>
+        </div>
+        <div class="card-total"><strong id="pinkTotal">¥0</strong><span class="chev">▼</span></div>
+      </button>
+      <div class="acc-body"><div class="acc-inner">
+        <div class="divider"></div>
+        <div class="stat-rows">
+          <div class="stat-box"><span>本明細の合計</span><strong id="pinkStatement">¥0</strong></div>
+          <div class="stat-box"><span>未反映速報</span><strong id="pinkAlerts">¥0</strong></div>
+          <div class="stat-box full"><span>楽天側表示額</span><input class="inline-edit" id="pinkOfficial" inputmode="numeric" placeholder="未設定" aria-label="PINKカード楽天側表示額" /></div>
+        </div>
+        <div class="official-note">楽天アプリの表示額が分かる場合は入力してください。設定時は「表示額＋未反映速報」を推定額として使います。</div>
+        <div class="action-grid">
+          <button class="action-btn primary import-btn" data-card="pink" data-source="statement">📷 本明細を読む</button>
+          <button class="action-btn secondary import-btn" data-card="pink" data-source="alert">⚡ 速報を読む</button>
+        </div>
+        <button class="manual-link manual-btn" data-card="pink">＋ 明細を手動追加</button>
+      </div></div>
+    </section>
 
-  <button onclick="checkURL()">
-    URLをチェック
-  </button>
+    <section class="card-accordion silver" data-card="silver">
+      <button class="card-head" type="button">
+        <div class="card-badge">S</div>
+        <div>
+          <div class="card-name">楽天カード</div>
+          <div class="card-meta"><span id="silverCount">0件</span><span id="silverAlertCount">速報0件</span></div>
+        </div>
+        <div class="card-total"><strong id="silverTotal">¥0</strong><span class="chev">▼</span></div>
+      </button>
+      <div class="acc-body"><div class="acc-inner">
+        <div class="divider"></div>
+        <div class="stat-rows">
+          <div class="stat-box"><span>本明細の合計</span><strong id="silverStatement">¥0</strong></div>
+          <div class="stat-box"><span>未反映速報</span><strong id="silverAlerts">¥0</strong></div>
+          <div class="stat-box full"><span>楽天側表示額</span><input class="inline-edit" id="silverOfficial" inputmode="numeric" placeholder="未設定" aria-label="楽天カード楽天側表示額" /></div>
+        </div>
+        <div class="official-note">本明細をAIで読み取った際に表示額が見つかれば自動更新されます。手入力で上書きもできます。</div>
+        <div class="action-grid">
+          <button class="action-btn primary import-btn" data-card="silver" data-source="statement">📷 本明細を読む</button>
+          <button class="action-btn secondary import-btn" data-card="silver" data-source="alert">⚡ 速報を読む</button>
+        </div>
+        <button class="manual-link manual-btn" data-card="silver">＋ 明細を手動追加</button>
+      </div></div>
+    </section>
 
-  <div id="result"></div>
-</div>
+    <div class="section-title">明細</div>
+    <section class="transactions-panel">
+      <div class="toolbar">
+        <input class="search" id="searchInput" type="search" placeholder="店名・明細名を検索" />
+        <div class="filters" id="filters">
+          <button class="filter-chip active" data-filter="all">すべて</button>
+          <button class="filter-chip" data-filter="statement">本明細</button>
+          <button class="filter-chip" data-filter="alert">速報</button>
+          <button class="filter-chip" data-filter="pink">PINK</button>
+          <button class="filter-chip" data-filter="silver">銀</button>
+        </div>
+      </div>
+      <div id="txList" class="tx-list"></div>
+    </section>
+
+    <section class="settings" id="settingsSection">
+      <button class="settings-head" id="settingsHead">
+        <span>⚙︎ 設定・データ管理</span><span class="settings-chev">▼</span>
+      </button>
+      <div class="settings-body"><div class="settings-inner">
+        <div class="subsection" style="margin-top:0;padding-top:12px;border-top:0">
+          <h3>Gemini API設定</h3>
+          <p>APIキーはこの端末のブラウザ内に保存されます。GitHubのコードには書き込まれません。画像読取時のみGoogle Gemini APIへ直接送信します。</p>
+          <div class="field"><label for="modelInput">モデル名</label><input class="text-input" id="modelInput" value="gemini-2.5-flash" /></div>
+          <div class="field"><label for="apiKeyInput">APIキー</label>
+            <div class="input-row"><input class="text-input" id="apiKeyInput" type="password" placeholder="AIza…" /><button class="small-btn" id="toggleApiKey">表示</button></div>
+          </div>
+          <div class="settings-actions"><button id="checkApi">接続を確認</button><button id="deleteApi">APIキーを削除</button></div>
+          <div class="api-status" id="apiStatus">● 未確認</div>
+        </div>
+        <div class="subsection">
+          <h3>バックアップ</h3>
+          <p>明細・楽天側表示額をJSONで保存／復元できます。APIキーはバックアップに含めません。</p>
+          <div class="settings-actions"><button id="exportData">書き出す</button><button id="importData">復元する</button></div>
+          <input id="backupFile" type="file" accept="application/json" hidden />
+        </div>
+        <div class="subsection">
+          <h3>データ削除</h3>
+          <p>選択中の月、または全データを削除できます。誤操作防止のため確認を表示します。</p>
+          <div class="settings-actions"><button id="deleteMonth">この月を削除</button><button id="deleteAll">すべて削除</button></div>
+        </div>
+      </div></div>
+    </section>
+
+    <div class="fab"><button id="quickAdd">＋ 明細を追加</button></div>
+  </main>
+
+  <input id="imagePicker" type="file" accept="image/*" multiple hidden />
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-handle"></div>
+      <div class="modal-head"><h2 id="modalTitle">明細を確認</h2><button class="close-btn" id="modalClose">×</button></div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer"><button class="btn-cancel" id="modalCancel">キャンセル</button><button class="btn-save" id="modalSave">保存</button></div>
+    </div>
+  </div>
+
+  <div class="loading" id="loading"><div class="loading-card"><div class="spinner"></div><strong id="loadingTitle">Geminiが読み取っています</strong><span id="loadingSub">画像を解析中です…</span></div></div>
+  <div class="toast" id="toast"></div>
 
 <script>
-function checkURL() {
+(() => {
+  'use strict';
 
-  const url = document.getElementById("url").value;
-  const result = document.getElementById("result");
+  const STORAGE_KEY = 'rakuten_alert_checker_v3';
+  const API_KEY_STORAGE = 'rakuten_alert_checker_gemini_key';
+  const MODEL_STORAGE = 'rakuten_alert_checker_gemini_model';
 
-  if (url.includes("rakuten.co.jp")) {
-    result.innerHTML = "✅ 楽天市場のURLです！";
-  } else {
-    result.innerHTML = "❌ 楽天市場のURLではありません";
+  const yen = n => '¥' + Math.round(Number(n || 0)).toLocaleString('ja-JP');
+  const pad2 = n => String(n).padStart(2,'0');
+  const now = new Date();
+
+  const defaultState = {
+    selectedYear: now.getFullYear(),
+    selectedMonth: now.getMonth() + 1,
+    transactions: [],
+    officialTotals: {},
+    mergedHistory: []
+  };
+
+  let state = loadState();
+  let activeFilter = 'all';
+  let modalMode = null;
+  let modalPayload = null;
+  let pendingImport = null;
+
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => [...document.querySelectorAll(sel)];
+
+  function loadState(){
+    try{
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      return raw && typeof raw === 'object' ? {...defaultState, ...raw} : structuredClone(defaultState);
+    }catch(e){ return structuredClone(defaultState); }
+  }
+  function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  function monthKey(y=state.selectedYear,m=state.selectedMonth){ return `${y}-${pad2(m)}`; }
+  function officialKey(card,y=state.selectedYear,m=state.selectedMonth){ return `${monthKey(y,m)}:${card}`; }
+  function id(){ return (crypto.randomUUID ? crypto.randomUUID() : 'id-'+Date.now()+'-'+Math.random().toString(16).slice(2)); }
+
+  function normalizeDigits(v){
+    return String(v ?? '').replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0)-0xFEE0));
+  }
+  function numberFrom(v){
+    const n = Number(normalizeDigits(v).replace(/[^0-9.-]/g,''));
+    return Number.isFinite(n) ? Math.abs(Math.round(n)) : 0;
+  }
+  function cleanMerchant(v){ return String(v || '').trim().replace(/\s+/g,' '); }
+  function normalizeMerchant(v){
+    return cleanMerchant(v).toLowerCase().replace(/[\s　・･._\-\(\)（）/]/g,'').replace(/カード利用速報|利用速報|楽天カード/g,'');
   }
 
-}
-</script>
+  function parseDateFlexible(v, fallbackYear=state.selectedYear){
+    if(!v) return `${fallbackYear}-${pad2(state.selectedMonth)}-01`;
+    let s = normalizeDigits(v).trim().replace(/[年月\.]/g,'-').replace(/日/g,'').replace(/\//g,'-');
+    const parts = s.split('-').filter(Boolean).map(Number);
+    if(parts.length >= 3 && parts[0] > 1000) return `${parts[0]}-${pad2(parts[1])}-${pad2(parts[2])}`;
+    if(parts.length >= 2) return `${fallbackYear}-${pad2(parts[0])}-${pad2(parts[1])}`;
+    return `${fallbackYear}-${pad2(state.selectedMonth)}-01`;
+  }
 
+  function dateDistance(a,b){
+    const da = new Date(a+'T00:00:00');
+    const db = new Date(b+'T00:00:00');
+    return Math.abs((da-db)/86400000);
+  }
+
+  function getMonthTransactions(){
+    return state.transactions.filter(t => !t.merged && t.date?.startsWith(monthKey()));
+  }
+  function getCardTransactions(card){ return getMonthTransactions().filter(t => t.card === card); }
+  function sum(list){ return list.reduce((a,b)=>a+Number(b.amount||0),0); }
+
+  function cardStats(card){
+    const list = getCardTransactions(card);
+    const confirmed = list.filter(t=>t.source==='statement');
+    const alerts = list.filter(t=>t.source==='alert');
+    const statementSum = sum(confirmed);
+    const alertSum = sum(alerts);
+    const officialRaw = state.officialTotals[officialKey(card)];
+    const hasOfficial = Number.isFinite(Number(officialRaw)) && Number(officialRaw) >= 0 && String(officialRaw) !== '';
+    const official = hasOfficial ? Number(officialRaw) : null;
+    const base = official !== null ? official : statementSum;
+    return {list, confirmed, alerts, statementSum, alertSum, official, total:base+alertSum};
+  }
+
+  function render(){
+    renderMonths();
+    const p = cardStats('pink');
+    const s = cardStats('silver');
+    const grand = p.total + s.total;
+    const st = (p.official !== null ? p.official : p.statementSum) + (s.official !== null ? s.official : s.statementSum);
+    const al = p.alertSum + s.alertSum;
+
+    $('#grandTotal').textContent = yen(grand);
+    $('#statementTotal').textContent = yen(st);
+    $('#alertTotal').textContent = yen(al);
+    $('#heroPeriod').textContent = `${state.selectedYear}年${state.selectedMonth}月・PINKカード＋楽天カード`;
+    $('#yearLabel').textContent = `${state.selectedYear}年`;
+
+    setCardUI('pink',p);
+    setCardUI('silver',s);
+    renderTransactions();
+  }
+
+  function setCardUI(card,stats){
+    const cap = card==='pink' ? 'pink' : 'silver';
+    $(`#${cap}Total`).textContent = yen(stats.total);
+    $(`#${cap}Count`).textContent = `${stats.list.length}件`;
+    $(`#${cap}AlertCount`).textContent = `速報${stats.alerts.length}件`;
+    $(`#${cap}Statement`).textContent = yen(stats.statementSum);
+    $(`#${cap}Alerts`).textContent = yen(stats.alertSum);
+    const inp = $(`#${cap}Official`);
+    if(document.activeElement !== inp){ inp.value = stats.official === null ? '' : stats.official.toLocaleString('ja-JP'); }
+  }
+
+  function renderMonths(){
+    const box = $('#months'); box.innerHTML='';
+    for(let m=1;m<=12;m++){
+      const b=document.createElement('button');
+      b.className='month-chip'+(m===state.selectedMonth?' active':'');
+      b.textContent=`${m}月`; b.dataset.month=m;
+      b.onclick=()=>{state.selectedMonth=m; saveState(); render(); setTimeout(()=>b.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'}),20)};
+      box.appendChild(b);
+    }
+    setTimeout(()=>box.querySelector('.active')?.scrollIntoView({inline:'center',block:'nearest'}),0);
+  }
+
+  function renderTransactions(){
+    const q = $('#searchInput').value.trim().toLowerCase();
+    let list = getMonthTransactions().slice().sort((a,b)=> b.date.localeCompare(a.date) || (b.createdAt||0)-(a.createdAt||0));
+    if(activeFilter==='statement' || activeFilter==='alert') list=list.filter(t=>t.source===activeFilter);
+    if(activeFilter==='pink' || activeFilter==='silver') list=list.filter(t=>t.card===activeFilter);
+    if(q) list=list.filter(t=>cleanMerchant(t.merchant).toLowerCase().includes(q));
+    const box=$('#txList'); box.innerHTML='';
+    if(!list.length){ box.innerHTML='<div class="empty">この月の明細はまだありません。<br>カードを開いて「本明細を読む」または「速報を読む」から追加できます。</div>'; return; }
+    list.forEach(t=>{
+      const item=document.createElement('div'); item.className='tx-item';
+      const cardLabel=t.card==='pink'?'PINK':'銀';
+      const src=t.source==='statement'?'本明細':'速報';
+      const d=t.date ? `${Number(t.date.slice(5,7))}/${Number(t.date.slice(8,10))}` : '—';
+      item.innerHTML=`
+        <div class="tx-main">
+          <div class="tx-top"><span class="tx-date">${escapeHtml(d)}</span><span class="pill ${t.source}">${src}</span><span class="pill ${t.card}">${cardLabel}</span></div>
+          <div class="tx-name">${escapeHtml(t.merchant || '明細名なし')}</div>
+        </div>
+        <div><div class="tx-amount">${yen(t.amount)}</div><button class="tx-more" aria-label="編集">•••</button></div>`;
+      item.querySelector('.tx-more').onclick=()=>openEditModal(t.id);
+      box.appendChild(item);
+    });
+  }
+
+  function escapeHtml(s){ return String(s).replace(/[&<>'"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+
+  // Accordion
+  $$('.card-accordion .card-head').forEach(head=>head.addEventListener('click',()=>{
+    const acc=head.closest('.card-accordion');
+    acc.classList.toggle('open');
+    const body=acc.querySelector('.acc-body');
+    body.style.maxHeight=acc.classList.contains('open') ? body.scrollHeight+'px' : '0px';
+  }));
+  window.addEventListener('resize',()=>$$('.card-accordion.open .acc-body').forEach(b=>b.style.maxHeight=b.scrollHeight+'px'));
+
+  $('#settingsHead').onclick=()=>{
+    $('#settingsSection').classList.toggle('open');
+    const body=$('#settingsSection .settings-body');
+    body.style.maxHeight=$('#settingsSection').classList.contains('open') ? body.scrollHeight+'px' : '0px';
+  };
+  $('#settingsShortcut').onclick=()=>{
+    $('#settingsSection').classList.add('open');
+    const body=$('#settingsSection .settings-body'); body.style.maxHeight=body.scrollHeight+'px';
+    $('#settingsSection').scrollIntoView({behavior:'smooth',block:'start'});
+  };
+
+  $('#prevYear').onclick=()=>{state.selectedYear--;saveState();render()};
+  $('#nextYear').onclick=()=>{state.selectedYear++;saveState();render()};
+
+  ['pink','silver'].forEach(card=>{
+    $(`#${card}Official`).addEventListener('change',e=>{
+      const v=e.target.value.trim();
+      if(!v) delete state.officialTotals[officialKey(card)];
+      else state.officialTotals[officialKey(card)] = numberFrom(v);
+      saveState(); render();
+    });
+  });
+
+  // Filters/search
+  $('#searchInput').addEventListener('input',renderTransactions);
+  $$('#filters .filter-chip').forEach(b=>b.onclick=()=>{
+    $$('#filters .filter-chip').forEach(x=>x.classList.remove('active')); b.classList.add('active');
+    activeFilter=b.dataset.filter; renderTransactions();
+  });
+
+  // API settings
+  $('#modelInput').value = localStorage.getItem(MODEL_STORAGE) || 'gemini-2.5-flash';
+  $('#apiKeyInput').value = localStorage.getItem(API_KEY_STORAGE) || '';
+  $('#modelInput').addEventListener('change',e=>localStorage.setItem(MODEL_STORAGE,e.target.value.trim()||'gemini-2.5-flash'));
+  $('#apiKeyInput').addEventListener('change',e=>localStorage.setItem(API_KEY_STORAGE,e.target.value.trim()));
+  $('#toggleApiKey').onclick=()=>{
+    const inp=$('#apiKeyInput'); const show=inp.type==='password'; inp.type=show?'text':'password'; $('#toggleApiKey').textContent=show?'隠す':'表示';
+  };
+  $('#deleteApi').onclick=()=>{
+    localStorage.removeItem(API_KEY_STORAGE); $('#apiKeyInput').value=''; setApiStatus('未確認',''); toast('APIキーを削除しました');
+  };
+  $('#checkApi').onclick=async()=>{
+    const key=$('#apiKeyInput').value.trim(); const model=$('#modelInput').value.trim()||'gemini-2.5-flash';
+    if(!key){setApiStatus('APIキーを入力してください','bad');return}
+    localStorage.setItem(API_KEY_STORAGE,key); localStorage.setItem(MODEL_STORAGE,model);
+    showLoading('Geminiへ接続しています','APIキーとモデルを確認中…');
+    try{
+      const data=await geminiRequest(model,key,[{text:'「OK」の2文字だけを返してください。'}],false);
+      const text=extractGeminiText(data).trim();
+      hideLoading(); setApiStatus(text?'接続OK':'接続できました','good');
+    }catch(err){hideLoading();setApiStatus(humanApiError(err),'bad')}
+  };
+  function setApiStatus(text,kind){ const el=$('#apiStatus'); el.textContent='● '+text; el.className='api-status '+(kind||''); }
+
+  // Import buttons
+  $$('.import-btn').forEach(btn=>btn.onclick=()=>{
+    const key=$('#apiKeyInput').value.trim() || localStorage.getItem(API_KEY_STORAGE) || '';
+    if(!key){ toast('先にGemini APIキーを設定してください'); $('#settingsShortcut').click(); return; }
+    pendingImport={card:btn.dataset.card,source:btn.dataset.source};
+    $('#imagePicker').value=''; $('#imagePicker').click();
+  });
+  $('#imagePicker').addEventListener('change',async e=>{
+    const files=[...e.target.files]; if(!files.length || !pendingImport) return;
+    const {card,source}=pendingImport;
+    await analyzeImages(files,card,source);
+  });
+
+  async function analyzeImages(files,card,source){
+    const key=$('#apiKeyInput').value.trim() || localStorage.getItem(API_KEY_STORAGE) || '';
+    const model=$('#modelInput').value.trim() || localStorage.getItem(MODEL_STORAGE) || 'gemini-2.5-flash';
+    localStorage.setItem(API_KEY_STORAGE,key); localStorage.setItem(MODEL_STORAGE,model);
+    showLoading('Geminiが明細を読み取っています',`${files.length}枚の画像を解析中…`);
+    try{
+      let combined=[]; let latestOfficial=null;
+      for(let i=0;i<files.length;i++){
+        $('#loadingSub').textContent=`${i+1}/${files.length}枚目を解析中…`;
+        const image=await compressImage(files[i]);
+        const prompt=buildPrompt(source,card);
+        const parts=[{text:prompt},{inline_data:{mime_type:image.mime,data:image.base64}}];
+        const data=await geminiRequest(model,key,parts,true);
+        const raw=extractGeminiText(data);
+        const parsed=parseGeminiJson(raw);
+        if(Number.isFinite(Number(parsed.officialTotal))) latestOfficial=numberFrom(parsed.officialTotal);
+        if(Array.isArray(parsed.transactions)) combined.push(...parsed.transactions);
+      }
+      hideLoading();
+      const normalized=combined.map(x=>({
+        id:id(),
+        date:parseDateFlexible(x.date,state.selectedYear),
+        merchant:cleanMerchant(x.merchant || (source==='alert'?'カード利用速報':'明細名なし')),
+        amount:numberFrom(x.amount),
+        card,
+        source,
+        createdAt:Date.now()
+      })).filter(x=>x.amount>0);
+      // AI result dedupe within current import
+      const unique=[]; const seen=new Set();
+      normalized.forEach(x=>{const k=`${x.date}|${normalizeMerchant(x.merchant)}|${x.amount}`; if(!seen.has(k)){seen.add(k);unique.push(x)}});
+      if(!unique.length && latestOfficial===null){ toast('明細を読み取れませんでした'); return; }
+      if(source==='statement') unique.forEach(x=>x.matchCandidates=findAlertCandidates(x));
+      openReviewModal({card,source,items:unique,officialTotal:latestOfficial});
+    }catch(err){ hideLoading(); console.error(err); alert('AI読取に失敗しました。\n\n'+humanApiError(err)); }
+  }
+
+  function buildPrompt(source,card){
+    const sourceText=source==='statement'?'楽天カードアプリ等の「本明細・利用明細」':'カード利用速報・速報通知';
+    return `あなたはクレジットカード明細の画像読取専用AIです。\n`+
+      `この画像は ${card==='pink'?'楽天PINKカード':'楽天カード'} の ${sourceText} です。\n`+
+      `画像内の取引を漏れなく抽出してください。\n`+
+      `返答は必ずJSONだけにしてください。説明文やMarkdownは禁止です。\n`+
+      `形式: {"officialTotal": number|null, "transactions":[{"date":"YYYY-MM-DD または MM-DD","merchant":"利用先・店名。速報で店名が無ければカード利用速報","amount":1234}]}\n`+
+      `ルール:\n`+
+      `- 金額は円記号・カンマなしの正の整数。\n`+
+      `- 同じ取引を重複して出さない。\n`+
+      `- 日付は画像に年が無ければ MM-DD でよい。\n`+
+      `- 本明細で「現在の利用額」「ご利用金額」「お支払い金額」等、カード全体の表示額が明確なら officialTotal に入れる。明確でなければ null。\n`+
+      `- 取消・返金が画像で明確な場合は amount を負数にせず、その行は transactions から除外する。\n`+
+      `- 読めない文字を勝手に推測しすぎない。店名不明なら「明細名不明」。`;
+  }
+
+  async function geminiRequest(model,key,parts,jsonMode){
+    const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+    const body={contents:[{role:'user',parts}],generationConfig:{temperature:0.1}};
+    if(jsonMode) body.generationConfig.responseMimeType='application/json';
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(body)});
+    const text=await res.text();
+    let data; try{data=JSON.parse(text)}catch{data={raw:text}}
+    if(!res.ok){const err=new Error(data?.error?.message || `HTTP ${res.status}`);err.status=res.status;throw err}
+    return data;
+  }
+  function extractGeminiText(data){ return data?.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('') || ''; }
+  function parseGeminiJson(text){
+    const cleaned=String(text).trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+    try{return JSON.parse(cleaned)}catch(e){
+      const m=cleaned.match(/\{[\s\S]*\}/); if(m) return JSON.parse(m[0]); throw new Error('Geminiの返答をJSONとして読み取れませんでした');
+    }
+  }
+  function humanApiError(err){
+    const m=String(err?.message||err);
+    if(err?.status===400) return 'リクエストが正しくありません。モデル名や画像を確認してください。\n'+m;
+    if(err?.status===401 || err?.status===403) return 'APIキーの権限または設定を確認してください。\n'+m;
+    if(err?.status===404) return 'モデル名が見つかりません。Geminiのモデル名を確認してください。\n'+m;
+    if(err?.status===429) return 'Gemini APIの利用上限に達した可能性があります。少し時間を置いてください。';
+    return m;
+  }
+
+  function compressImage(file){
+    return new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onerror=reject;
+      reader.onload=()=>{
+        const img=new Image();
+        img.onerror=reject;
+        img.onload=()=>{
+          const max=1800; let w=img.width,h=img.height;
+          if(Math.max(w,h)>max){const r=max/Math.max(w,h);w=Math.round(w*r);h=Math.round(h*r)}
+          const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+          const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,w,h);
+          const dataUrl=canvas.toDataURL('image/jpeg',0.88);
+          resolve({mime:'image/jpeg',base64:dataUrl.split(',')[1]});
+        };
+        img.src=reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Matching alerts -> statements
+  function findAlertCandidates(statement){
+    const alerts=state.transactions.filter(t=>!t.merged && t.card===statement.card && t.source==='alert' && Number(t.amount)===Number(statement.amount));
+    return alerts.map(a=>{
+      const dd=dateDistance(a.date,statement.date);
+      const am=normalizeMerchant(a.merchant), sm=normalizeMerchant(statement.merchant);
+      const merchantUseful=am && sm && !/速報|不明/.test(a.merchant);
+      let score=0;
+      if(dd===0) score+=70; else if(dd<=2) score+=55; else if(dd<=7) score+=35; else score-=20;
+      if(merchantUseful && (am.includes(sm)||sm.includes(am))) score+=30;
+      return {...a,score,dayDiff:dd};
+    }).filter(x=>x.score>=35).sort((a,b)=>b.score-a.score);
+  }
+
+  function openReviewModal(payload){
+    modalMode='review'; modalPayload=payload;
+    $('#modalTitle').textContent=payload.source==='statement'?'本明細の読取結果':'速報の読取結果';
+    $('#modalSave').textContent='この内容で登録';
+    renderReviewModal(); openModal();
+  }
+  function renderReviewModal(){
+    const p=modalPayload; const body=$('#modalBody');
+    const cardName=p.card==='pink'?'楽天PINKカード':'楽天カード';
+    body.innerHTML=`<div class="review-summary"><strong>${cardName}</strong>・${p.source==='statement'?'本明細':'速報'}<br>${p.items.length}件を検出しました。登録前に日付・明細名・金額を修正できます。${p.source==='statement'?' 一致する速報が1件だけ見つかった場合は、登録時に自動で本明細へ置き換えます。':''}</div>`;
+    if(p.source==='statement'){
+      const wrap=document.createElement('div');wrap.className='field';
+      wrap.innerHTML=`<label>楽天側表示額（画像から検出した場合）</label><input class="text-input" id="reviewOfficial" inputmode="numeric" placeholder="未検出・未設定" value="${p.officialTotal===null?'':p.officialTotal.toLocaleString('ja-JP')}">`;
+      body.appendChild(wrap);
+    }
+    p.items.forEach((item,index)=>{
+      const candidates=item.matchCandidates||[];
+      const div=document.createElement('div');div.className='review-item';div.dataset.index=index;
+      let hint='';
+      if(p.source==='statement' && candidates.length===1) hint=`<div class="match-hint">✓ 速報「${escapeHtml(candidates[0].merchant)} / ${yen(candidates[0].amount)}」と一致候補。登録時に速報を置き換えます。</div>`;
+      if(p.source==='statement' && candidates.length>1) hint=`<div class="match-hint warn">⚠ 同額の速報候補が${candidates.length}件あります。誤削除防止のため自動統合しません。登録後に一覧で確認してください。</div>`;
+      div.innerHTML=`
+        <div class="review-grid">
+          <div><div class="review-label">日付</div><input class="r-date" type="date" value="${escapeHtml(item.date)}"></div>
+          <div><div class="review-label">金額</div><input class="r-amount" inputmode="numeric" value="${item.amount.toLocaleString('ja-JP')}"></div>
+          <div class="full"><div class="review-label">明細名・利用先</div><input class="r-merchant" value="${escapeHtml(item.merchant)}"></div>
+        </div>
+        ${hint}
+        <button class="remove-review">この行を除外</button>`;
+      div.querySelector('.remove-review').onclick=()=>{p.items.splice(index,1);renderReviewModal()};
+      body.appendChild(div);
+    });
+  }
+
+  function collectReviewInputs(){
+    if(modalMode!=='review')return;
+    const p=modalPayload;
+    $$('#modalBody .review-item').forEach((div,i)=>{
+      const it=p.items[i];
+      it.date=div.querySelector('.r-date').value;
+      it.amount=numberFrom(div.querySelector('.r-amount').value);
+      it.merchant=cleanMerchant(div.querySelector('.r-merchant').value);
+      if(p.source==='statement') it.matchCandidates=findAlertCandidates(it);
+    });
+    if(p.source==='statement'){
+      const inp=$('#reviewOfficial'); if(inp) p.officialTotal=inp.value.trim()?numberFrom(inp.value):null;
+    }
+  }
+
+  // Manual / edit modals
+  $$('.manual-btn').forEach(btn=>btn.onclick=()=>openManualModal(btn.dataset.card));
+  $('#quickAdd').onclick=()=>openManualModal('pink',true);
+  function openManualModal(defaultCard='pink',allowCardSwitch=false){
+    modalMode='manual';
+    modalPayload={id:id(),date:`${monthKey()}-${pad2(Math.min(new Date().getDate(),28))}`,merchant:'',amount:0,card:defaultCard,source:'statement',createdAt:Date.now(),allowCardSwitch};
+    $('#modalTitle').textContent='明細を手動追加'; $('#modalSave').textContent='追加する'; renderSingleEdit(); openModal();
+  }
+  function openEditModal(txId){
+    const tx=state.transactions.find(t=>t.id===txId); if(!tx)return;
+    modalMode='edit'; modalPayload={...tx};
+    $('#modalTitle').textContent='明細を編集'; $('#modalSave').textContent='変更を保存'; renderSingleEdit(true); openModal();
+  }
+  function renderSingleEdit(isEdit=false){
+    const p=modalPayload; const body=$('#modalBody');
+    body.innerHTML=`
+      <div class="segmented" id="sourceSeg"><button data-v="statement" class="${p.source==='statement'?'active':''}">本明細</button><button data-v="alert" class="${p.source==='alert'?'active':''}">速報</button></div>
+      <div class="segmented" id="cardSeg"><button data-v="pink" class="${p.card==='pink'?'active':''}">PINKカード</button><button data-v="silver" class="${p.card==='silver'?'active':''}">楽天カード</button></div>
+      <div class="field"><label>日付</label><input class="text-input" id="editDate" type="date" value="${escapeHtml(p.date)}"></div>
+      <div class="field"><label>明細名・利用先</label><input class="text-input" id="editMerchant" value="${escapeHtml(p.merchant)}" placeholder="例：ヤマザワ松見町店"></div>
+      <div class="field"><label>金額</label><input class="text-input" id="editAmount" inputmode="numeric" value="${p.amount?p.amount.toLocaleString('ja-JP'):''}" placeholder="0"></div>
+      ${isEdit?'<div class="subsection"><button class="danger-btn" id="deleteTx">この明細を削除</button></div>':''}`;
+    $$('#sourceSeg button').forEach(b=>b.onclick=()=>{$$('#sourceSeg button').forEach(x=>x.classList.remove('active'));b.classList.add('active');p.source=b.dataset.v});
+    $$('#cardSeg button').forEach(b=>b.onclick=()=>{$$('#cardSeg button').forEach(x=>x.classList.remove('active'));b.classList.add('active');p.card=b.dataset.v});
+    if(isEdit) $('#deleteTx').onclick=()=>{ if(confirm('この明細を削除しますか？')){ state.transactions=state.transactions.filter(t=>t.id!==p.id);saveState();closeModal();render();toast('明細を削除しました'); } };
+  }
+
+  function openModal(){ $('#modalBackdrop').classList.add('show'); document.body.style.overflow='hidden'; }
+  function closeModal(){ $('#modalBackdrop').classList.remove('show'); document.body.style.overflow=''; modalMode=null; modalPayload=null; }
+  $('#modalClose').onclick=closeModal; $('#modalCancel').onclick=closeModal;
+  $('#modalBackdrop').addEventListener('click',e=>{if(e.target===$('#modalBackdrop'))closeModal()});
+
+  $('#modalSave').onclick=()=>{
+    if(modalMode==='review'){
+      collectReviewInputs();
+      const p=modalPayload;
+      const valid=p.items.filter(x=>x.amount>0 && x.date);
+      let merged=0,duplicates=0;
+      valid.forEach(item=>{
+        if(isDuplicateExisting(item)){duplicates++;return;}
+        if(p.source==='statement'){
+          const candidates=findAlertCandidates(item);
+          if(candidates.length===1){
+            const alert=state.transactions.find(t=>t.id===candidates[0].id);
+            if(alert){alert.merged=true;alert.mergedInto=item.id;alert.mergedAt=Date.now();state.mergedHistory.push({alertId:alert.id,statementId:item.id,at:Date.now()});merged++;}
+          }
+        }
+        delete item.matchCandidates; state.transactions.push(item);
+      });
+      if(p.source==='statement' && p.officialTotal!==null) state.officialTotals[officialKey(p.card)] = p.officialTotal;
+      saveState(); closeModal(); render();
+      let msg=`${valid.length-duplicates}件を登録しました`;
+      if(merged) msg+=`・速報${merged}件を本明細へ統合`;
+      if(duplicates) msg+=`・重複${duplicates}件を除外`;
+      toast(msg); return;
+    }
+    if(modalMode==='manual' || modalMode==='edit'){
+      const p=modalPayload;
+      p.date=$('#editDate').value; p.merchant=cleanMerchant($('#editMerchant').value)||'明細名なし'; p.amount=numberFrom($('#editAmount').value);
+      if(!p.date || !p.amount){toast('日付と金額を入力してください');return}
+      if(modalMode==='manual'){
+        if(isDuplicateExisting(p) && !confirm('同じ日付・金額・明細名のデータがあります。追加しますか？')) return;
+        state.transactions.push(p);
+      }else{
+        const idx=state.transactions.findIndex(t=>t.id===p.id); if(idx>=0)state.transactions[idx]=p;
+      }
+      const wasManual = modalMode==='manual';
+      saveState();closeModal();render();toast(wasManual?'明細を追加しました':'変更を保存しました');
+    }
+  };
+
+  function isDuplicateExisting(item){
+    return state.transactions.some(t=>!t.merged && t.card===item.card && t.source===item.source && Number(t.amount)===Number(item.amount) && t.date===item.date && normalizeMerchant(t.merchant)===normalizeMerchant(item.merchant));
+  }
+
+  // Backup
+  $('#exportData').onclick=()=>{
+    const payload={version:3,exportedAt:new Date().toISOString(),state};
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`rakuten-checker-backup-${monthKey()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('バックアップを書き出しました');
+  };
+  $('#importData').onclick=()=>{$('#backupFile').value='';$('#backupFile').click()};
+  $('#backupFile').onchange=async e=>{
+    const f=e.target.files[0];if(!f)return;
+    try{const json=JSON.parse(await f.text()); if(!json.state || !Array.isArray(json.state.transactions))throw new Error(); if(!confirm('現在のデータをバックアップ内容で置き換えますか？'))return; state={...defaultState,...json.state};saveState();render();toast('バックアップを復元しました')}catch{alert('バックアップファイルを読み込めませんでした')}
+  };
+  $('#deleteMonth').onclick=()=>{
+    if(!confirm(`${state.selectedYear}年${state.selectedMonth}月のデータを削除しますか？`))return;
+    const mk=monthKey(); state.transactions=state.transactions.filter(t=>!t.date?.startsWith(mk)); delete state.officialTotals[officialKey('pink')];delete state.officialTotals[officialKey('silver')];saveState();render();toast('この月のデータを削除しました');
+  };
+  $('#deleteAll').onclick=()=>{
+    if(!confirm('すべての明細データと表示額を削除します。APIキーは残ります。よろしいですか？'))return;
+    state=structuredClone(defaultState);saveState();render();toast('すべてのデータを削除しました');
+  };
+
+  function showLoading(title,sub){$('#loadingTitle').textContent=title;$('#loadingSub').textContent=sub;$('#loading').classList.add('show')}
+  function hideLoading(){$('#loading').classList.remove('show')}
+  let toastTimer; function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2600)}
+
+  render();
+})();
+</script>
 </body>
 </html>
