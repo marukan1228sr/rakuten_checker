@@ -474,6 +474,13 @@
     const n = Number(normalizeDigits(v).replace(/[^0-9.-]/g,''));
     return Number.isFinite(n) ? Math.abs(Math.round(n)) : 0;
   }
+  function amountFrom(v){
+    const raw=normalizeDigits(v).trim();
+    const negative=/[-−]|\(.*\)|取消|返金|ｷｬﾝｾﾙ|キャンセル/.test(raw);
+    const n=Number(raw.replace(/[^0-9.]/g,''));
+    if(!Number.isFinite(n)) return 0;
+    return (negative?-1:1)*Math.round(n);
+  }
   function cleanMerchant(v){ return String(v || '').trim().replace(/\s+/g,' '); }
   function normalizeMerchant(v){
     return cleanMerchant(v).toLowerCase().replace(/[\s　・･._\-\(\)（）/]/g,'').replace(/カード利用速報|利用速報|楽天カード/g,'');
@@ -705,10 +712,10 @@
         debitMonth:monthKey(),
         date:parseDateFlexible(x.date,state.selectedYear,state.selectedMonth),
         merchant:cleanMerchant(x.merchant || (source==='alert'?'カード利用速報':'明細名なし')),
-        amount:numberFrom(x.amount),
+        amount:amountFrom(x.amount),
         occurrenceCount:Math.max(1,Math.min(10,Number.parseInt(x.occurrenceCount,10)||1)),
         card,source,createdAt:Date.now(),importBatchId:batch,importIndex:index
-      })).filter(x=>x.amount>0);
+      })).filter(x=>x.amount!==0);
       const {items:normalized,removed:batchDuplicates}=dedupeImportBatch(normalizedRaw);
       hideLoading();
       if(!normalized.length && officialTotal===null){ toast('明細を読み取れませんでした'); return; }
@@ -728,12 +735,14 @@
       `形式: {"officialTotal": number|null, "detectedPeriod":"YYYY-MM"|null, "transactions":[{"date":"YYYY-MM-DD または MM-DD","merchant":"利用先・店名。速報で店名が無ければカード利用速報","amount":1234,"occurrenceCount":1}]}\n`+
       `ルール:\n`+
       `- 金額は円記号・カンマなしの正の整数。\n`+
-      `- occurrenceCount は、画像の重なりを除いたうえで「同一日・同一店名・同一金額」が実際に別取引として何行あるか。通常は1。完全に同じ取引が本当に2行ある場合だけ2以上にする。\n`+
+      `- occurrenceCount は「同一日・同一店名・同一金額」が1枚の画像内に同時に何行見えているか、その最大数にする。別画像にも同じ行が写っただけなら増やさない。1枚の中に同じ内容が2行あれば2にする。\n`+
+      `- 複数画像で上下の店名・日付・並び順が共通する行はスクロールの重なりなので同じ1件として扱う。別々の画像に写った回数を occurrenceCount にしない。\n`+
       `- 日付は各取引の「利用日」。画面上部の2026/10等を取引日として使わない。\n`+
       `- 画面上部などに対象期間の2026/10等が明確なら detectedPeriod に入れる。\n`+
-      `- 本明細で「お支払い金額」「ご利用金額」「現在の利用額」等、カード全体の表示額が明確なら officialTotal に入れる。明確でなければ null。\n`+
+      `- officialTotal は選択月の「お支払い金額」「ご請求金額」「今回請求額」だけを入れる。「ご利用可能額」「利用残高」「現在の利用額」「利用可能枠」「合計利用額」は入れない。請求額が明確でなければ null。\n`+
+      `- 取消・返金・キャンセルの金額が請求計算に含まれる行は除外せず、amount を負の整数にする。元売上と取消の両方があれば両方残す。\n`+
+      `- 分割払いは商品の総額ではなく、その月の明細行に表示された今回支払額だけを amount にする。\n`+
       `- 画面下部の広告・おすすめ情報・メニュー・ボタンの金額は取引として抽出しない。\n`+
-      `- 取消・返金が画像で明確な行は transactions から除外する。\n`+
       `- 読めない文字を勝手に推測しすぎない。店名不明なら「明細名不明」。\n`+
       `- 取引行の店名、利用日、金額を漏れなく抽出することを最優先する。`;
   }
@@ -814,7 +823,7 @@
   }
 
   function statementAudit(items,officialTotal){
-    const statementItems=items.filter(x=>x.source==='statement' && x.amount>0);
+    const statementItems=items.filter(x=>x.source==='statement' && x.amount!==0);
     const subtotal=sum(statementItems);
     const hasOfficial=officialTotal!==null && Number.isFinite(Number(officialTotal));
     return {count:statementItems.length,subtotal,official:hasOfficial?Number(officialTotal):null,diff:hasOfficial?subtotal-Number(officialTotal):null};
@@ -854,7 +863,7 @@
     if(p.source==='statement' && audit.official!==null){
       auditNote = audit.diff===0
         ? `<div class="match-hint">✓ ${audit.count}件の小計 ${yen(audit.subtotal)} と楽天側表示額 ${yen(audit.official)} が一致しています。</div>`
-        : `<div class="match-hint warn">⚠ ${audit.count}件の小計 ${yen(audit.subtotal)} と楽天側表示額 ${yen(audit.official)} が一致しません。差額 ${yen(Math.abs(audit.diff))}。重複・読取漏れ・金額誤読を確認してください。</div>`;
+        : `<div class="match-hint warn">⚠ ${audit.count}件の小計 ${yen(audit.subtotal)} と楽天側表示額 ${yen(audit.official)} が一致しません。差額 ${yen(Math.abs(audit.diff))}。取消・返金、分割払い、重複、読取漏れを確認してください。このままでも登録できます。</div>`;
     }
     const duplicateNote=p.batchDuplicates?`<div class="match-hint">✓ スクショ重複候補 ${p.batchDuplicates}件を読取結果から除外しました。</div>`:'';
     body.innerHTML=`<div class="review-summary"><strong>${cardName}</strong>・${p.source==='statement'?'本明細':'速報'}<br><strong>${Number(ty)}年${Number(tm)}月 引落分</strong>へ ${p.items.length}件を登録します。<br>利用日は前月でもそのまま残ります。登録前に日付・明細名・金額を修正できます。${p.source==='statement'?' 金額一致した本明細は、この引落月の最新一覧として置き換えます。一致する速報は自動統合します。':''}${periodNote}${duplicateNote}${auditNote}</div>`;
@@ -941,7 +950,7 @@
     if(modalMode==='review'){
       collectReviewInputs();
       const p=modalPayload;
-      const validRaw=p.items.filter(x=>x.amount>0 && x.date);
+      const validRaw=p.items.filter(x=>x.amount!==0 && x.date);
       const {items:valid,removed:internalDuplicates}=dedupeImportBatch(validRaw);
       const audit=statementAudit(valid,p.officialTotal);
       if(p.source==='statement' && audit.official!==null && audit.diff!==0){
@@ -960,8 +969,15 @@
       const existingBefore=state.transactions.slice();
       const addedThisSave=[];
       let merged=0,duplicates=internalDuplicates;
+      const existingCounts=new Map();
+      existingBefore.filter(t=>!t.merged).forEach(t=>{
+        const sig=txSignature(t); existingCounts.set(sig,(existingCounts.get(sig)||0)+1);
+      });
+      const incomingSeen=new Map();
       valid.forEach(item=>{
-        if(isDuplicateExisting(item,existingBefore.concat(addedThisSave))){duplicates++;return;}
+        const sig=txSignature(item);
+        const ordinal=(incomingSeen.get(sig)||0)+1; incomingSeen.set(sig,ordinal);
+        if(!replaceStatement && ordinal<=(existingCounts.get(sig)||0)){duplicates++;return;}
         if(p.source==='statement'){
           const candidates=findAlertCandidates(item);
           if(candidates.length===1){
@@ -982,7 +998,7 @@
     }
     if(modalMode==='manual' || modalMode==='edit'){
       const p=modalPayload;
-      p.debitMonth=$('#editDebitMonth').value || monthKey(); p.date=$('#editDate').value; p.merchant=cleanMerchant($('#editMerchant').value)||'明細名なし'; p.amount=numberFrom($('#editAmount').value);
+      p.debitMonth=$('#editDebitMonth').value || monthKey(); p.date=$('#editDate').value; p.merchant=cleanMerchant($('#editMerchant').value)||'明細名なし'; p.amount=amountFrom($('#editAmount').value);
       if(!p.date || !p.amount){toast('日付と金額を入力してください');return}
       if(modalMode==='manual'){
         if(isDuplicateExisting(p) && !confirm('同じ日付・金額・明細名のデータがあります。追加しますか？')) return;
