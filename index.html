@@ -879,8 +879,9 @@
       const candidates=item.matchCandidates||[];
       const div=document.createElement('div');div.className='review-item';div.dataset.index=index;
       let hint='';
-      if(p.source==='statement' && candidates.length===1) hint=`<div class="match-hint">✓ 速報「${escapeHtml(candidates[0].merchant)} / ${yen(candidates[0].amount)}」と一致候補。登録時に速報を置き換えます。</div>`;
-      if(p.source==='statement' && candidates.length>1) hint=`<div class="match-hint warn">⚠ 同額の速報候補が${candidates.length}件あります。誤削除防止のため自動統合しません。登録後に一覧で確認してください。</div>`;
+      const exactCandidates=candidates.filter(x=>x.dayDiff===0);
+      if(p.source==='statement' && exactCandidates.length) hint=`<div class="match-hint">✓ 同じ日付・金額の速報${exactCandidates.length}件と一致候補。登録時に1件ずつ対応させます。</div>`;
+      else if(p.source==='statement' && candidates.length===1) hint=`<div class="match-hint warn">△ 日付が近い同額速報があります。日付が違うため自動統合しません。</div>`;
       div.innerHTML=`
         <div class="review-grid">
           <div><div class="review-label">日付</div><input class="r-date" type="date" value="${escapeHtml(item.date)}"></div>
@@ -979,11 +980,12 @@
         const ordinal=(incomingSeen.get(sig)||0)+1; incomingSeen.set(sig,ordinal);
         if(!replaceStatement && ordinal<=(existingCounts.get(sig)||0)){duplicates++;return;}
         if(p.source==='statement'){
-          const candidates=findAlertCandidates(item);
-          if(candidates.length===1){
-            const alert=state.transactions.find(t=>t.id===candidates[0].id);
-            if(alert){alert.merged=true;alert.mergedInto=item.id;alert.mergedAt=Date.now();state.mergedHistory.push({alertId:alert.id,statementId:item.id,at:Date.now()});merged++;}
-          }
+          // 速報と本明細は「同じカード・引落月・利用日・金額」で1対1に統合する。
+          // 同一内容が複数件あっても、未統合の速報を1件ずつ消費するので二重計上しない。
+          const alert=state.transactions
+            .filter(t=>!t.merged && t.card===item.card && t.source==='alert' && t.debitMonth===item.debitMonth && Number(t.amount)===Number(item.amount) && t.date===item.date)
+            .sort((a,b)=>(a.createdAt||0)-(b.createdAt||0))[0];
+          if(alert){alert.merged=true;alert.mergedInto=item.id;alert.mergedAt=Date.now();state.mergedHistory.push({alertId:alert.id,statementId:item.id,at:Date.now()});merged++;}
         }
         delete item.matchCandidates; delete item.occurrenceCount; delete item.occurrenceOrdinal;
         state.transactions.push(item); addedThisSave.push(item);
