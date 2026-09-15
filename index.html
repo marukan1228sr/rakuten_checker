@@ -462,7 +462,32 @@
       return loaded;
     }catch(e){ return structuredClone(defaultState); }
   }
-  function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  // 取込順に依存させない。速報と本明細を同じカード・引落月・利用日・金額で1対1に対応させる。
+  function reconcileAlerts(){
+    const alerts=state.transactions.filter(t=>t.source==='alert');
+    const statements=state.transactions.filter(t=>t.source==='statement' && !t.merged);
+    const previous=new Map(alerts.map(t=>[t.id,t.mergedInto||null]));
+    const statementGroups=new Map();
+    const matchKey=t=>[t.card,t.debitMonth,t.date,Number(t.amount)].join('|');
+    statements.forEach(t=>{
+      const key=matchKey(t);
+      if(!statementGroups.has(key))statementGroups.set(key,[]);
+      statementGroups.get(key).push(t);
+    });
+    for(const group of statementGroups.values())group.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+    alerts.forEach(t=>{t.merged=false;delete t.mergedInto;delete t.mergedAt});
+    let newlyMerged=0;
+    alerts.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)).forEach(alert=>{
+      const statement=statementGroups.get(matchKey(alert))?.shift();
+      if(!statement)return;
+      alert.merged=true;alert.mergedInto=statement.id;alert.mergedAt=Date.now();
+      if(previous.get(alert.id)!==statement.id)newlyMerged++;
+      if(!state.mergedHistory.some(h=>h.alertId===alert.id && h.statementId===statement.id))
+        state.mergedHistory.push({alertId:alert.id,statementId:statement.id,at:Date.now()});
+    });
+    return newlyMerged;
+  }
+  function saveState(){ const newlyMerged=reconcileAlerts(); localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); return newlyMerged; }
   function monthKey(y=state.selectedYear,m=state.selectedMonth){ return `${y}-${pad2(m)}`; }
   function officialKey(card,y=state.selectedYear,m=state.selectedMonth){ return `${monthKey(y,m)}:${card}`; }
   function id(){ return (crypto.randomUUID ? crypto.randomUUID() : 'id-'+Date.now()+'-'+Math.random().toString(16).slice(2)); }
@@ -971,7 +996,7 @@
       const addedThisSave=[];
       let merged=0,duplicates=internalDuplicates;
       const existingCounts=new Map();
-      existingBefore.filter(t=>!t.merged).forEach(t=>{
+      existingBefore.forEach(t=>{
         const sig=txSignature(t); existingCounts.set(sig,(existingCounts.get(sig)||0)+1);
       });
       const incomingSeen=new Map();
@@ -979,19 +1004,11 @@
         const sig=txSignature(item);
         const ordinal=(incomingSeen.get(sig)||0)+1; incomingSeen.set(sig,ordinal);
         if(!replaceStatement && ordinal<=(existingCounts.get(sig)||0)){duplicates++;return;}
-        if(p.source==='statement'){
-          // 速報と本明細は「同じカード・引落月・利用日・金額」で1対1に統合する。
-          // 同一内容が複数件あっても、未統合の速報を1件ずつ消費するので二重計上しない。
-          const alert=state.transactions
-            .filter(t=>!t.merged && t.card===item.card && t.source==='alert' && t.debitMonth===item.debitMonth && Number(t.amount)===Number(item.amount) && t.date===item.date)
-            .sort((a,b)=>(a.createdAt||0)-(b.createdAt||0))[0];
-          if(alert){alert.merged=true;alert.mergedInto=item.id;alert.mergedAt=Date.now();state.mergedHistory.push({alertId:alert.id,statementId:item.id,at:Date.now()});merged++;}
-        }
         delete item.matchCandidates; delete item.occurrenceCount; delete item.occurrenceOrdinal;
         state.transactions.push(item); addedThisSave.push(item);
       });
       if(p.source==='statement' && p.officialTotal!==null){ const [yy,mm]=p.debitMonth.split('-').map(Number); state.officialTotals[officialKey(p.card,yy,mm)] = p.officialTotal; }
-      saveState(); closeModal(); render();
+      merged=saveState(); closeModal(); render();
       let msg=`${addedThisSave.length}件を登録しました`;
       if(replaceStatement) msg+='・本明細を最新一覧に更新';
       if(merged) msg+=`・速報${merged}件を統合`;
