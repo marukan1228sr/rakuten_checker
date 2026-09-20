@@ -368,8 +368,9 @@
         </div>
         <div class="subsection">
           <h3>データ削除</h3>
-          <p>選択中の引落月、または全データを削除できます。誤操作防止のため確認を表示します。</p>
-          <div class="settings-actions"><button id="deleteMonth">この引落月を削除</button><button id="deleteAll">すべて削除</button></div>
+          <p>選択中の引落月をカード別に削除できます。誤操作防止のため確認を表示します。</p>
+          <div class="settings-actions"><button id="deletePinkMonth">この月のPINKだけ削除</button><button id="deleteSilverMonth">この月の楽天カードだけ削除</button></div>
+          <div class="settings-actions"><button id="deleteMonth">この引落月を両方削除</button><button id="deleteAll">すべての月を削除</button></div>
         </div>
       </div></div>
     </section>
@@ -1093,6 +1094,19 @@
     if(!confirm(`${state.selectedYear}年${state.selectedMonth}月 引落分のデータを削除しますか？`))return;
     const mk=monthKey(); state.transactions=state.transactions.filter(t=>t.debitMonth!==mk); delete state.officialTotals[officialKey('pink')];delete state.officialTotals[officialKey('silver')];saveState();render();toast('この引落月のデータを削除しました');
   };
+  function deleteCardMonth(card){
+    const mk=monthKey();
+    const label=card==='pink'?'PINKカード':'楽天カード';
+    const count=state.transactions.filter(t=>t.debitMonth===mk && t.card===card).length;
+    if(!confirm(`${state.selectedYear}年${state.selectedMonth}月 引落分の${label}データ（${count}件）を削除しますか？\n\nもう一方のカードは残ります。`))return;
+    const deletedIds=new Set(state.transactions.filter(t=>t.debitMonth===mk && t.card===card).map(t=>t.id));
+    state.transactions=state.transactions.filter(t=>!(t.debitMonth===mk && t.card===card));
+    state.mergedHistory=state.mergedHistory.filter(h=>!deletedIds.has(h.alertId) && !deletedIds.has(h.statementId));
+    delete state.officialTotals[officialKey(card)];
+    saveState();render();toast(`${label}のこの月のデータを削除しました`);
+  }
+  $('#deletePinkMonth').onclick=()=>deleteCardMonth('pink');
+  $('#deleteSilverMonth').onclick=()=>deleteCardMonth('silver');
   $('#deleteAll').onclick=()=>{
     if(!confirm('すべての明細データと表示額を削除します。APIキーは残ります。よろしいですか？'))return;
     state=structuredClone(defaultState);saveState();render();toast('すべてのデータを削除しました');
