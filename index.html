@@ -396,7 +396,7 @@
   'use strict';
 
   const STORAGE_KEY = 'rakuten_alert_checker_v3';
-  const DATA_VERSION = 5;
+  const DATA_VERSION = 6;
   const API_KEY_STORAGE = 'rakuten_alert_checker_gemini_key';
   const MODEL_STORAGE = 'rakuten_alert_checker_gemini_model';
 
@@ -458,6 +458,35 @@
           seen.add(sig); return true;
         });
       }
+      // v6: 旧版で日々のAI取込ごとに累積した同じ本明細を整理する。
+      // OCRによる店名表記の軽い揺れもまとめるが、同じバッチ内の最大件数は残す。
+      // そのため実在する「同日・同店・同額」の複数取引は維持される。
+      if(Number(loaded.dataVersion||0) < 6){
+        const baseGroups=new Map();
+        loaded.transactions.forEach(t=>{
+          if(t.source!=='statement' || !t.importBatchId || t.merged)return;
+          const key=[t.card,t.debitMonth,t.date,Number(t.amount)].join('|');
+          if(!baseGroups.has(key))baseGroups.set(key,[]);
+          baseGroups.get(key).push(t);
+        });
+        const removeIds=new Set();
+        baseGroups.forEach(baseGroup=>{
+          const clusters=[];
+          [...baseGroup].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).forEach(t=>{
+            let cluster=clusters.find(c=>merchantSimilarity(c[0].merchant,t.merchant)>=.60);
+            if(!cluster){cluster=[];clusters.push(cluster)}
+            cluster.push(t);
+          });
+          clusters.forEach(group=>{
+            const byBatch=new Map();
+            group.forEach(t=>{if(!byBatch.has(t.importBatchId))byBatch.set(t.importBatchId,[]);byBatch.get(t.importBatchId).push(t)});
+            if(byBatch.size<2)return;
+            const keepCount=Math.max(...[...byBatch.values()].map(x=>x.length));
+            group.slice(keepCount).forEach(t=>removeIds.add(t.id));
+          });
+        });
+        loaded.transactions=loaded.transactions.filter(t=>!removeIds.has(t.id));
+      }
       loaded.dataVersion = DATA_VERSION;
       return loaded;
     }catch(e){ return structuredClone(defaultState); }
@@ -508,7 +537,25 @@
   }
   function cleanMerchant(v){ return String(v || '').trim().replace(/\s+/g,' '); }
   function normalizeMerchant(v){
-    return cleanMerchant(v).toLowerCase().replace(/[\s　・･._\-\(\)（）/]/g,'').replace(/カード利用速報|利用速報|楽天カード/g,'');
+    return cleanMerchant(v).toLowerCase().replace(/マスター国内利用|カード利用速報|利用速報|楽天カード|mzz/g,'').replace(/[\s　・･._\-\(\)（）/]/g,'');
+  }
+  function merchantSimilarity(a,b){
+    const x=normalizeMerchant(a),y=normalizeMerchant(b);
+    if(!x || !y)return 0;
+    if(x===y)return 1;
+    if(Math.min(x.length,y.length)>=4 && (x.includes(y)||y.includes(x)))return .94;
+    const grams=s=>{const out=[];for(let i=0;i<s.length-1;i++)out.push(s.slice(i,i+2));return out};
+    const ax=grams(x),by=grams(y);if(!ax.length||!by.length)return 0;
+    const counts=new Map();by.forEach(g=>counts.set(g,(counts.get(g)||0)+1));
+    let hits=0;ax.forEach(g=>{const n=counts.get(g)||0;if(n){hits++;counts.set(g,n-1)}});
+    return 2*hits/(ax.length+by.length);
+  }
+  function findExistingStatement(item,pool,consumed){
+    return pool
+      .filter(t=>!consumed.has(t.id) && !t.merged && t.source==='statement' && t.card===item.card && t.debitMonth===item.debitMonth && t.date===item.date && Number(t.amount)===Number(item.amount))
+      .map(t=>({item:t,score:merchantSimilarity(t.merchant,item.merchant)}))
+      .filter(x=>x.score>=.60)
+      .sort((a,b)=>b.score-a.score || (b.item.createdAt||0)-(a.item.createdAt||0))[0]?.item || null;
   }
 
   function parseDateFlexible(v, fallbackYear=state.selectedYear, fallbackDebitMonth=state.selectedMonth){
@@ -886,12 +933,10 @@
     const audit=statementAudit(p.items,p.officialTotal);
     let auditNote='';
     if(p.source==='statement' && audit.official!==null){
-      auditNote = audit.diff===0
-        ? `<div class="match-hint">✓ ${audit.count}件の小計 ${yen(audit.subtotal)} と楽天側表示額 ${yen(audit.official)} が一致しています。</div>`
-        : `<div class="match-hint warn">⚠ ${audit.count}件の小計 ${yen(audit.subtotal)} と楽天側表示額 ${yen(audit.official)} が一致しません。差額 ${yen(Math.abs(audit.diff))}。取消・返金、分割払い、重複、読取漏れを確認してください。このままでも登録できます。</div>`;
+      auditNote=`<div class="match-hint">楽天側表示額 ${yen(audit.official)} を検出しました。今回のスクショが上部だけでも、保存済みの明細全体と登録後に比較します。</div>`;
     }
     const duplicateNote=p.batchDuplicates?`<div class="match-hint">✓ スクショ重複候補 ${p.batchDuplicates}件を読取結果から除外しました。</div>`:'';
-    body.innerHTML=`<div class="review-summary"><strong>${cardName}</strong>・${p.source==='statement'?'本明細':'速報'}<br><strong>${Number(ty)}年${Number(tm)}月 引落分</strong>へ ${p.items.length}件を登録します。<br>利用日は前月でもそのまま残ります。登録前に日付・明細名・金額を修正できます。${p.source==='statement'?' 金額一致した本明細は、この引落月の最新一覧として置き換えます。一致する速報は自動統合します。':''}${periodNote}${duplicateNote}${auditNote}</div>`;
+    body.innerHTML=`<div class="review-summary"><strong>${cardName}</strong>・${p.source==='statement'?'本明細':'速報'}<br><strong>${Number(ty)}年${Number(tm)}月 引落分</strong>へ ${p.items.length}件を照合します。<br>利用日は前月でもそのまま残ります。登録前に日付・明細名・金額を修正できます。${p.source==='statement'?' 既存の同じ明細は追加せず、新しく写った行だけ追加します。下の過去明細は残ります。一致する速報は自動統合します。':''}${periodNote}${duplicateNote}${auditNote}</div>`;
     const debitWrap=document.createElement('div'); debitWrap.className='field';
     debitWrap.innerHTML=`<label>登録先の引落月</label><input class="text-input" id="reviewDebitMonth" type="month" value="${escapeHtml(target)}">`;
     body.appendChild(debitWrap);
@@ -979,18 +1024,8 @@
       const validRaw=p.items.filter(x=>x.amount!==0 && x.date);
       const {items:valid,removed:internalDuplicates}=dedupeImportBatch(validRaw);
       const audit=statementAudit(valid,p.officialTotal);
-      if(p.source==='statement' && audit.official!==null && audit.diff!==0){
-        const direction=audit.diff>0?'多い':'少ない';
-        const ok=confirm(`明細小計と楽天側表示額が一致していません。\n\n明細 ${audit.count}件：${yen(audit.subtotal)}\n楽天側表示額：${yen(audit.official)}\n差額：${yen(Math.abs(audit.diff))}（明細小計が${direction}）\n\nこのまま登録すると金額チェック警告が残ります。登録しますか？`);
-        if(!ok)return;
-      }
-
-      // 表示額と小計が一致する完全な本明細は、そのカード・引落月の最新スナップショットとして置き換える。
-      // これにより同じ明細を何度読み込んでも積み上がらず、過去の誤読取も再読込で修復できる。
-      const replaceStatement=p.source==='statement' && audit.official!==null && audit.diff===0;
-      if(replaceStatement){
-        state.transactions=state.transactions.filter(t=>!(t.card===p.card && t.debitMonth===p.debitMonth && t.source==='statement' && !t.merged));
-      }
+      // 上部だけのスクショを日々追加できる差分更新。過去の本明細は削除しない。
+      const replaceStatement=false;
 
       const existingBefore=state.transactions.slice();
       const addedThisSave=[];
@@ -1000,17 +1035,26 @@
         const sig=txSignature(t); existingCounts.set(sig,(existingCounts.get(sig)||0)+1);
       });
       const incomingSeen=new Map();
+      const consumedStatements=new Set();
       valid.forEach(item=>{
         const sig=txSignature(item);
         const ordinal=(incomingSeen.get(sig)||0)+1; incomingSeen.set(sig,ordinal);
-        if(!replaceStatement && ordinal<=(existingCounts.get(sig)||0)){duplicates++;return;}
+        if(p.source==='statement'){
+          const existing=findExistingStatement(item,existingBefore,consumedStatements);
+          if(existing){
+            consumedStatements.add(existing.id);
+            // 新しい読取の方が詳しい場合だけ店名表記を改善する。
+            if(cleanMerchant(item.merchant).length>cleanMerchant(existing.merchant).length)existing.merchant=item.merchant;
+            duplicates++;return;
+          }
+        }else if(ordinal<=(existingCounts.get(sig)||0)){duplicates++;return;}
         delete item.matchCandidates; delete item.occurrenceCount; delete item.occurrenceOrdinal;
         state.transactions.push(item); addedThisSave.push(item);
       });
       if(p.source==='statement' && p.officialTotal!==null){ const [yy,mm]=p.debitMonth.split('-').map(Number); state.officialTotals[officialKey(p.card,yy,mm)] = p.officialTotal; }
       merged=saveState(); closeModal(); render();
       let msg=`${addedThisSave.length}件を登録しました`;
-      if(replaceStatement) msg+='・本明細を最新一覧に更新';
+      if(p.source==='statement') msg+='・既存明細と差分照合';
       if(merged) msg+=`・速報${merged}件を統合`;
       if(duplicates) msg+=`・重複${duplicates}件を除外`;
       toast(msg); return;
